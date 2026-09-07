@@ -91,12 +91,6 @@ tr:hover td { background:color-mix(in srgb, var(--card) 96%, var(--border)); }
     </div>
     <div class="controls">
       <a class="backlink" href="index.html">← 返回全国看板</a>
-      <div class="seg" id="timeSeg">
-        <button data-t="day" class="active">日</button>
-        <button data-t="week">周</button>
-        <button data-t="month">月</button>
-        <button data-t="year">年</button>
-      </div>
       <button class="iconbtn" id="themeBtn" title="切换主题">🌗</button>
     </div>
   </div>
@@ -109,7 +103,7 @@ tr:hover td { background:color-mix(in srgb, var(--card) 96%, var(--border)); }
 
   <div class="row rowfull">
     <div class="panel">
-      <div class="panel-head"><span class="panel-title">各省换电站数量（当前统计周期）</span><span class="panel-hint" id="barHint">按数值降序 · 点击柱条联动趋势</span></div>
+      <div class="panel-head"><span class="panel-title">各省换电站数量（今日）</span><span class="panel-hint" id="barHint">按数值降序 · 点击柱条联动趋势</span></div>
       <div class="chart chart-md" id="chartBar"></div>
     </div>
   </div>
@@ -134,7 +128,7 @@ tr:hover td { background:color-mix(in srgb, var(--card) 96%, var(--border)); }
     <b>数据说明</b> · 数据自动抓取自蔚来官网充电地图（<code>charger-map</code>）公开接口，按 <b>标准行政区划代码（GB/T 2260）</b> 逐省查询换电站数量（<code>swap_station_num_for_com</code>）。<br>
     · 覆盖 <b>全国 31 个省级行政区</b>（不含港澳台）；换电站为<b>累计值</b>，随每日抓取自动增长。<br>
     · 「各省合计」= 31 省数值之和（可能略小于官网"全国"口径，因部分高速/跨省站点未计入单一省份）。<br>
-    · 时间维度：日 / 周 / 月 / 年，展示对应周期末的各省快照；趋势图展示选中省随周期的变化。<br>
+    · 数据为<b>每日累计值</b>，随每日抓取自动增长；趋势图展示选中省份逐日变化。<br>
     · 更新频率：<b>每天</b>（GitHub Actions 08:30 自动抓取，无需本机开机）。
   </div>
 </div>
@@ -142,7 +136,6 @@ tr:hover td { background:color-mix(in srgb, var(--card) 96%, var(--border)); }
 <script>
 let theme = localStorage.getItem('nio-theme') || 'light';
 let dashboard = null;
-let currentTime = 'day';
 let selected = null;          // 当前选中的省 code
 const charts = {};
 
@@ -181,8 +174,8 @@ function loadSeq(urls, idx){
     .catch(() => loadSeq(urls, idx+1));
 }
 
-// 当前时间维度下，取该维度 bucket 数组
-function buckets(){ return dashboard ? (dashboard[currentTime === 'day' ? 'daily' : currentTime + 'ly']) : []; }
+// 取日维度 bucket 数组
+function buckets(){ return dashboard ? (dashboard.daily || []) : []; }
 function timeKeyOf(b){ return b.key; }
 
 function fmt(n){ return n==null?'—':Number(n).toLocaleString('zh-CN'); }
@@ -207,7 +200,7 @@ function renderKpis(){
   const lastKey = timeKeyOf(bs[bs.length-1]);
 
   const defs = [
-    { label:`31省合计（${timeLabel()}末）`, value: fmt(sum)+' <small>座</small>', c:'#E60012' },
+    { label:`31省合计（今日末）`, value: fmt(sum)+' <small>座</small>', c:'#E60012' },
     { label:'换电站最多的省份', value: `${top.name||'—'} <small>${fmt(top.v)} 座</small>`, c:'#1E88E5' },
     { label:'有换电站的省份数', value: `${withData} <small>/ 31</small>`, c:'#43A047' },
     { label:'当前统计周期', value: `${lastKey} <small>· ${bs.length} 个</small>`, c:'#FB8C00' },
@@ -218,7 +211,6 @@ function renderKpis(){
       <div class="kpi-value">${d.value}</div>
     </div>`).join('');
 }
-function timeLabel(){ return {day:'今日', week:'本周', month:'本月', year:'本年'}[currentTime] || currentTime; }
 
 // ---------- 柱状图：各省换电站 ----------
 function renderBar(){
@@ -272,7 +264,7 @@ function renderTrend(){
   const x = bs.map(b=>timeKeyOf(b));
   const y = bs.map(b=> Number(b.values[code]) || 0 );
 
-  document.getElementById('trendHint').textContent = `省份：${name} · 日/周/月/年时间轴`;
+  document.getElementById('trendHint').textContent = `省份：${name} · 逐日趋势`;
   charts.trend.setOption({
     grid:{left:60,right:20,top:30,bottom:50},
     tooltip:{trigger:'axis', valueFormatter:v=>fmt(v)+' 座'},
@@ -312,13 +304,6 @@ function renderTable(){
 function renderAll(){ renderKpis(); renderBar(); renderTrend(); renderTable(); }
 
 // ---------- 事件 ----------
-document.getElementById('timeSeg').addEventListener('click', e=>{
-  if(e.target.tagName!=='BUTTON') return;
-  currentTime = e.target.dataset.t;
-  document.querySelectorAll('#timeSeg button').forEach(b=>b.classList.remove('active'));
-  e.target.classList.add('active');
-  renderAll();
-});
 document.getElementById('themeBtn').addEventListener('click', ()=>{ theme = theme==='light'?'dark':'light'; applyTheme(); });
 window.addEventListener('resize', ()=>{ Object.values(charts).forEach(ch=>ch&&ch.resize()); });
 

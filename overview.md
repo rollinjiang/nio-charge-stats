@@ -87,4 +87,11 @@
 1. ~~**数据口径**：充换电站总数采用设备总数（9322）~~ → 已确认保持，不改。
 2. ~~**线上每日更新**~~ → 已完成，每日定时任务已包含自动重新部署。
 3. ~~**是否必须开机**~~ → 当前值已改为实时直连，不依赖开机。
-4. 若希望**趋势图也完全不依赖本机**（例如出差数周），可将 `scraper/nio_http.js`（纯 HTTP，无浏览器依赖）迁移到 GitHub Actions 等云端定时，数据 commit 回仓库即可。
+4. ~~**趋势图也脱离本机**~~ → 已迁移到 GitHub Actions 云端定时（`rollinjiang/nio-charge-stats`），本地自动化已 PAUSED，点击上线。
+   - 每日抓取 + 聚合 + commit 回 main，看板从 `raw.githubusercontent.com/...` 远程拉数据，**电脑关机照常更新**。
+   - 本地仍保留全套源码，可随时修改后 push。
+
+## 故障记录（已修复）
+- **现象**：看板报「数据加载失败：所有数据源均不可用」。
+- **根因**：本地 `git pull --rebase` 时，Actions 的 workflow commit 与本地 commit 同时改了 `data/*.json`，rebase 冲突未解决就 `--continue`，冲突标记（`<<<<<<< HEAD`）被 commit 进 `data/dashboard.json` → HTTP 200 但非合法 JSON → 前端解析失败。
+- **修复**：用 Actions 生成的最新干净版本覆盖 data 文件；删除 workflow 的 `push` 触发器（避免与 schedule 撞车）；commit 前加冲突标记兜底检查。

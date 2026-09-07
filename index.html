@@ -85,12 +85,6 @@ html[data-theme="dark"] .delta.up{color:#FF6B6B;} html[data-theme="dark"] .delta
     </div>
     <div class="controls">
       <a class="backlink" href="province.html" style="font-size:13px; color:var(--muted); text-decoration:none; padding:6px 11px; border:1px solid var(--border); border-radius:10px; background:var(--card);">🗺 分省统计</a>
-      <div class="seg" id="timeSeg">
-        <button data-t="day" class="active">日</button>
-        <button data-t="week">周</button>
-        <button data-t="month">月</button>
-        <button data-t="year">年</button>
-      </div>
       <button class="iconbtn" id="themeBtn" title="切换主题">🌗</button>
     </div>
   </div>
@@ -112,23 +106,12 @@ html[data-theme="dark"] .delta.up{color:#FF6B6B;} html[data-theme="dark"] .delta
     </div>
   </div>
 
-  <div class="row">
-    <div class="panel">
-      <div class="panel-head"><span class="panel-title">各指标占比</span><span class="panel-hint num-units"></span></div>
-      <div class="chart chart-md" id="chartPie"></div>
-    </div>
-    <div class="panel">
-      <div class="panel-head"><span class="panel-title">最近记录明细</span><span class="panel-hint">最新若干日</span></div>
-      <div class="chart chart-md" id="chartDetail"></div>
-    </div>
-  </div>
-
   <div class="note">
     <b>数据说明</b> · 数据自动抓取自蔚来官网充电地图（<code>charger-map</code>）公开接口，无需登录。<br>
     · <b>蔚来能源充换电站总数</b>（<code>power_swap_charge_device_num_total</code>）= 换电站数量 + 充电站数量。<br>
     · <b>蔚来能源充电站数量</b>（<code>power_charge_station_device_num_total</code>）为充电站<b>座数</b>；已验证：换电站 4,070 + 充电站 5,252 = 9,322，与充换电站总数完全吻合。<br>
     · 「高速公路换电站」对应城际高速换电站（<code>intercity_swap_station_num</code>）。<br>
-    · 更新频率：<b>每天</b>。趋势图随每日积累自动增长。指标为<b>累计值</b>，周/月/年维度展示周期末快照与周期内变化。
+    · 更新频率：<b>每天</b>。趋势图随每日积累自动增长。指标为<b>累计值</b>。
   </div>
 </div>
 
@@ -145,7 +128,6 @@ const METRIC_DEF = {
 
 let theme = localStorage.getItem('nio-theme') || 'light';
 let dashboard = null;
-let currentTime = 'day';
 let realtime = null;   // 实时接口数据（浏览器直接请求 NIO，CORS 已开放）
 const charts = {};
 
@@ -204,10 +186,8 @@ function applyTheme(){
   if(dashboard) renderAll();
 }
 
-const TIME_KEY = { day:'daily', week:'weekly', month:'monthly', year:'yearly' };
-function getSeries(data, timeT){
-  const realKey = TIME_KEY[timeT] || timeT;
-  let arr = data[realKey] ? Object.values(data[realKey]) : [];
+function getSeries(data){
+  const arr = data.daily ? Object.values(data.daily) : [];
   if(!arr.length) return [];
   // arr[0] 是 {label,color,unit,points:[]}
   const series = arr.map(s => ({
@@ -217,7 +197,7 @@ function getSeries(data, timeT){
   return series;
 }
 
-function xAxisLabels(timeT, series){
+function xAxisLabels(series){
   // 用第一个有数据的 series 的 x 轴
   for(const s of series){ if(s.points.length) return s.points.map(p=>p.x); }
   return [];
@@ -264,7 +244,7 @@ function buildKpis(){
 function renderMain(){
   const el = document.getElementById('chartMain');
   if(!charts.main) charts.main = echarts.init(el);
-  const series = getSeries(dashboard, currentTime);
+  const series = getSeries(dashboard);
   const center = accentColor();
   const show = series.filter(s=>s.points.length);
   const chart = show.length ? show.slice(0,3) : [];
@@ -272,7 +252,7 @@ function renderMain(){
     grid:{top:50,left:70,right:30,bottom:50},
     tooltip:{trigger:'axis', valueFormatter:v=>v==null?'—':Number(v).toLocaleString('zh-CN')},
     legend:{top:6, textStyle:{color:center[3]}},
-    xAxis:{type:'category', data:xAxisLabels(currentTime, chart), axisLabel:{color:center[4]}, axisLine:{lineStyle:{color:center[2]}}},
+    xAxis:{type:'category', data:xAxisLabels(chart), axisLabel:{color:center[4]}, axisLine:{lineStyle:{color:center[2]}}},
     yAxis:{type:'value', scale:true, axisLabel:{color:center[4], formatter:v=>fmt(+v)}, splitLine:{lineStyle:{color:center[5]}}},
     series: chart.map(s=>({
       name:s.name, type:'line', smooth:true, symbolSize:10, showSymbol:true, data:s.points.map(p=>p.y),
@@ -294,7 +274,7 @@ function chartArt(hex){
 function renderSwap(){
   const el = document.getElementById('chartSwap');
   if(!charts.swap) charts.swap = echarts.init(el);
-  const series = getSeries(dashboard, currentTime);
+  const series = getSeries(dashboard);
   const swap = series.find(s=>s.name.includes('换电站数量')) || series.find(s=>s.name.includes('换电站'));
   const hs = series.find(s=>s.name.includes('高速公路')||s.name.includes('高速'));
   if(!swap){ charts.swap.clear(); return; }
@@ -317,51 +297,6 @@ function renderSwap(){
   charts.swap.setOption(option, true);
 }
 
-function renderPie(){
-  const el = document.getElementById('chartPie');
-  if(!charts.pie) charts.pie = echarts.init(el);
-  const latest = dashboard.latest;
-  // 选取几个核心构成
-  const items = [
-    {name:'换电站', value:+latest.swap_station_num_for_com?.value||0, color:'#1E88E5'},
-    {name:'充电站', value:+latest.power_charge_station_device_num_total?.value||0, color:'#FB8C00'},
-    {name:'充电设备', value:+latest.power_charge_device_num_total?.value||0, color:'#8E24AA'},
-  ];
-  const center = accentColor();
-  const option = {
-    tooltip:{trigger:'item', formatter:p=>`${p.name}<br>${Number(p.value).toLocaleString('zh-CN')} (${p.percent}%)`},
-    legend:{bottom:0, textStyle:{color:center[3]}},
-    series:[{
-      type:'pie', radius:['38%','62%'], center:['50%','46%'],
-      itemStyle:{borderRadius:6, borderColor:center[1], borderWidth:2},
-      label:{show:true, formatter:'{b}\n{d}%', color:center[3]},
-      data:items,
-    }],
-  };
-  charts.pie.setOption(option, true);
-}
-
-function renderDetail(){
-  const el = document.getElementById('chartDetail');
-  if(!charts.detail) charts.detail = echarts.init(el);
-  const series = getSeries(dashboard, 'day');
-  const baseSeries = series.find(s=>s.name.includes('充换电站')) || series[0];
-  if(!baseSeries){ charts.detail.clear(); return; }
-  const pts = baseSeries.points;
-  const show = pts.length > 20 ? pts.slice(-20) : pts; // 显示最近20天
-  const center = accentColor();
-  const option = {
-    grid:{top:40,left:70,right:30,bottom:50},
-    tooltip:{trigger:'axis', valueFormatter:v=>v==null?'—':Number(v).toLocaleString('zh-CN')},
-    xAxis:{type:'category', data:show.map(p=>p.x), axisLabel:{color:center[4], formatter:v=>v.slice(5)}, axisLine:{lineStyle:{color:center[2]}}},
-    yAxis:{type:'value', scale:true, axisLabel:{color:center[4], formatter:v=>fmt(+v)}, splitLine:{lineStyle:{color:center[5]}}},
-    series:[{name:'充换电站总数（近20日）', type:'line', data:show.map(p=>p.y), smooth:true,
-      lineStyle:{width:3,color:'#E60012'}, itemStyle:{color:'#E60012'}, symbolSize:7, showSymbol:true,
-      areaStyle:{color:'rgba(230,0,18,0.08)'} }],
-  };
-  charts.detail.setOption(option, true);
-}
-
 function renderAll(){
   const sub = dashboard ? `数据源：蔚来官网充电地图 · 最新 ${dashboard.latest_date} · 已积累 ${dashboard.total_days} 天` : '';
   document.getElementById('subtitle').textContent = sub;
@@ -369,12 +304,8 @@ function renderAll(){
   buildKpis();
   renderMain();
   renderSwap();
-  renderPie();
-  renderDetail();
   charts.main && charts.main.resize();
   charts.swap && charts.swap.resize();
-  charts.pie && charts.pie.resize();
-  charts.detail && charts.detail.resize();
 }
 
 function loadData(){
@@ -425,13 +356,6 @@ function updateUpdatedNote(){
   }
 }
 
-document.getElementById('timeSeg').addEventListener('click', e=>{
-  if(e.target.tagName!=='BUTTON') return;
-  currentTime = e.target.dataset.t;
-  document.querySelectorAll('#timeSeg button').forEach(b=>b.classList.remove('active'));
-  e.target.classList.add('active');
-  renderAll();
-});
 document.getElementById('themeBtn').addEventListener('click', ()=>{ theme = theme==='light'?'dark':'light'; applyTheme(); });
 
 window.addEventListener('resize', ()=>{ Object.values(charts).forEach(c=>c&&c.resize()); });

@@ -2,7 +2,7 @@
 
 每天 08:30 (CST) 自动从蔚来官网充电地图公开接口抓取四个关键指标，生成日/周/月/年四维度趋势的云端看板。
 
-> 在线看板：见 `index.html`，可通过 WorkBuddy 部署或 GitHub Pages 托管。
+> 在线看板：`index.html`（全国维度）与 `province.html`（分省维度），可通过 WorkBuddy 部署或 GitHub Pages 托管。
 > 数据接口：`chargermap-fe-gateway.nio.com/.../indicator/basic/summary`（无需登录，无需绕过 WAF，裸 HTTP 即可）。
 
 ## 关键指标
@@ -14,16 +14,40 @@
 | 换电站数量 | `swap_station_num_for_com` | 换电站座数（累计） |
 | 高速公路换电站 | `intercity_swap_station_num` | 城际高速换电站座数（累计） |
 
+## 页面
+
+| 页面 | 文件 | 说明 |
+|---|---|---|
+| 全国看板 | `index.html` | 全国四维趋势 + 4 个关键指标 |
+| 分省统计 | `province.html` | 全国31省换电站总数 · 日/周/月/年 + 排序柱状图 + 趋势 + 数据表 |
+
+### 分省数据如何取
+
+分省数据与全国数据同源，但把 `dim_value` 换成**标准行政区划代码（GB/T 2260）**即可逐省查询：
+
+```
+summary?dim_code=region_code&dim_value=440000   # 广东
+```
+
+示例：广东 `440000` → 换电站 488（与官网点击地图后"数据"面板一致）。覆盖中国大陆 31 个省级行政区（不含港澳台）。
+
 ## 目录结构
 
 ```
 .
-├── index.html              # 静态看板 (ECharts)
-├── scraper/nio_http.js     # 抓取脚本 (纯 HTTP，无需浏览器)
-├── aggregate/agg.js        # 聚合脚本 (日/周/月/年)
+├── index.html              # 全国看板 (ECharts)
+├── province.html           # 分省统计看板 (ECharts)
+├── scraper/
+│   ├── nio_http.js         # 全国指标抓取 (纯 HTTP)
+│   └── nio_province.js     # 分省换电站抓取 (纯 HTTP)
+├── aggregate/
+│   ├── agg.js              # 全国聚合 (日/周/月/年)
+│   └── province_agg.js     # 分省聚合 (日/周/月/年)
 ├── data/                   # 历史数据 (由 Actions 维护)
 │   ├── history.json
-│   └── dashboard.json
+│   ├── dashboard.json
+│   ├── province_history.json
+│   └── province_dashboard.json
 ├── .github/workflows/
 │   └── daily.yml           # GitHub Actions 定时任务
 ├── run.sh                  # 本地一键运行 (抓取+聚合)

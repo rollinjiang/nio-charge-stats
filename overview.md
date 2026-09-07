@@ -5,9 +5,17 @@
 为监控蔚来（NIO）充换电网络规模，搭建了一套"**每日自动抓取 → 指标聚合 → 可视化看板**"的完整工作流。
 
 - **数据源**：蔚来官网充电地图 https://www.nio.cn/charger-map （公开接口，无需登录）
-- **更新频率**：每天 08:30 自动抓取
+- **更新频率**：每天 08:30 自动抓取（GitHub Actions 云端定时，无需本机开机）
 - **在线看板**：https://9b753a37197449429a08d2c6a720b77a.app.workbuddy.link
+- **分省看板**：https://9b753a37197449429a08d2c6a720b77a.app.workbuddy.link/province.html
 - **本地入口**：`/Users/rollin/WorkBuddy/2026-09-07-11-38-52/index.html`
+
+## 页面组成
+
+| 页面 | 地址 | 内容 |
+|---|---|---|
+| 全国看板 `index.html` | `/` | 全国充换电站/换电站/高速换电站四维趋势 |
+| 分省统计 `province.html` | `/province.html` | 全国31省换电站总数 · 日/周/月/年 + 排序表 + 趋势 |
 
 ## 核心指标
 

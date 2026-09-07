@@ -1,7 +1,11 @@
 [
   {
     "date": "2026-09-07",
+<<<<<<< HEAD
     "fetched_at": "2026-09-07T11:22:33.515Z",
+=======
+    "fetched_at": "2026-09-07T11:24:46.374Z",
+>>>>>>> 3ae20cb (docs: province page docs + pipeline)
     "power_swap_charge_device_num_total": 9322,
     "power_charge_station_device_num_total": 5252,
     "swap_station_num_for_com": 4070,

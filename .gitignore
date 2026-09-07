@@ -18,3 +18,5 @@ data/latest.json
 
 # 临时验证产物
 .verify_*.png
+.prov_*.png
+._*.png

@@ -100,30 +100,12 @@ function main() {
   const dailyDeltas = computeDeltasByProv(history);
   const latestDeltas = dailyDeltas[dailyDeltas.length - 1].deltas || {};
 
-  // "本月新增"：本月 1 日及之后所有记录的各省新增之和
-  // 用户语义：本期(月/年)起点至今日各省累计增量
-  const today = new Date();
-  const yearStart = new Date(today.getFullYear(), 0, 1);
-  const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+  // "本月新增/本年新增/本月新增最多省份"共享同一基准：项目历史起点（2026-09-07）
+  // 基准日固定，公式 = 当前累计 − 9月7日累计
+  const BASE_DATE = '2026-09-07';
+  const base = history.find(r => r.date === BASE_DATE) || null;
 
-  // 全国本月/本年新增换电站 = 本期起点之后每日新增之和
-  // 由于 history 是按天抓取的"累计快照"，新增 = 当前累计 - 期初前一条记录的累计
-  // 简化：取"当前累计" 与 "期初前最后一条记录累计" 的差
-  const yearStartStr = `${today.getFullYear()}-01-01`;
-  const monthStartStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-01`;
-  // 严格 < 周期起点的最后一条记录作为基线
-  function findBaselineBefore(dateStr) {
-    let base = null;
-    for (const r of history) {
-      if (r.date < dateStr) base = r;
-      else break;
-    }
-    return base;
-  }
-  const yearBase = findBaselineBefore(yearStartStr);
-  const monthBase = findBaselineBefore(monthStartStr);
-
-  // 各省在两个基线下的本期新增
+  // 各省在固定基准下的本期新增
   function deltasFromBaseline(base) {
     const out = {};
     for (const code of ORDER) {
@@ -133,8 +115,8 @@ function main() {
     }
     return out;
   }
-  const yearDeltaByProv = deltasFromBaseline(yearBase);
-  const monthDeltaByProv = deltasFromBaseline(monthBase);
+  const yearDeltaByProv = deltasFromBaseline(base);
+  const monthDeltaByProv = deltasFromBaseline(base);
 
   // "本月新增最多的省份"
   let monthTopCode = null, monthTopVal = -1;
@@ -165,17 +147,14 @@ function main() {
     weekly: bucketize(history, isoWeek, k => orderKeyFnFor(false)(k)),
     monthly: bucketize(history, monthKey, k => k.replace(/-/g, '') * 1),
     yearly: bucketize(history, yearKey, k => k * 1),
-    // 本期新增相关
+    // 本期新增相关（基准固定为 2026-09-07）
     period: {
-      year_start: yearStartStr,
-      month_start: monthStartStr,
+      baseline_date: BASE_DATE,
       month_top_province: monthTopCode ? { code: monthTopCode, name: PROVINCE_NAMES[monthTopCode] || monthTopCode, delta: monthTopVal } : null,
       month_delta_by_prov: monthDeltaByProv,
       year_delta_by_prov: yearDeltaByProv,
-      has_year_baseline: !!yearBase,
-      has_month_baseline: !!monthBase,
-      year_base_date: yearBase ? yearBase.date : null,
-      month_base_date: monthBase ? monthBase.date : null,
+      has_baseline: !!base,
+      base_date: base ? base.date : null,
       city_latest: cityLatest,
     },
   };

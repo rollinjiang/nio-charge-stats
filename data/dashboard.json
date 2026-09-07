@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-07T12:14:32.754Z",
+  "generated_at": "2026-09-07T12:36:36.709Z",
   "latest_date": "2026-09-07",
   "total_days": 1,
   "metrics": [
@@ -400,19 +400,18 @@
     "first_date": "2026-09-07"
   },
   "period": {
-    "year_start": "2026-01-01",
-    "month_start": "2026-09-01",
-    "year_delta": {
-      "value": 4071,
-      "baseline_date": null,
-      "baseline_value": null,
-      "has_baseline": false
-    },
+    "baseline_date": "2026-09-07",
     "month_delta": {
-      "value": 4071,
-      "baseline_date": null,
-      "baseline_value": null,
-      "has_baseline": false
+      "value": 0,
+      "baseline_date": "2026-09-07",
+      "baseline_value": 4071,
+      "has_baseline": true
+    },
+    "year_delta": {
+      "value": 0,
+      "baseline_date": "2026-09-07",
+      "baseline_value": 4071,
+      "has_baseline": true
     }
   }
 }

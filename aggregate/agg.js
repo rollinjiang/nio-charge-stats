@@ -121,29 +121,16 @@ function buildYearly(records) {
   return { buckets, series: sb.series, count: buckets.length };
 }
 
-// 计算"本月新增"和"本年新增"：当前累计 - 周期起点之前的最后一条记录的累计
+// 计算"本月新增"和"本年新增"：当前累计 − 项目历史起点（2026-09-07）的累计
+// 基准日固定为项目首次抓取日，三个本期指标（本月/本年新增）共享同一基准
 function computePeriod(records, latest, metricKey) {
-  const today = new Date();
-  const y = today.getFullYear();
-  const m = today.getMonth(); // 0-indexed
-  const yearStartStr = `${y}-01-01`;
-  const monthStartStr = `${y}-${String(m + 1).padStart(2, '0')}-01`;
-
-  function findBaselineBefore(dateStr) {
-    // 严格小于 dateStr 的最后一条记录
-    let base = null;
-    for (const r of records) {
-      if (r.date < dateStr) base = r;
-      else break;
-    }
-    return base;
-  }
-  const yearBase = findBaselineBefore(yearStartStr);
-  const monthBase = findBaselineBefore(monthStartStr);
+  const BASE_DATE = '2026-09-07';
+  // 基准记录：精确匹配 BASE_DATE 的当日记录
+  const base = records.find(r => r.date === BASE_DATE) || null;
   const curVal = Number(latest[metricKey]) || 0;
 
   function delta(base) {
-    if (!base) return { value: curVal, baseline_date: null, baseline_value: null, has_baseline: false };
+    if (!base) return { value: 0, baseline_date: null, baseline_value: null, has_baseline: false };
     const baseVal = Number(base[metricKey]) || 0;
     return {
       value: Math.max(0, curVal - baseVal),
@@ -154,10 +141,9 @@ function computePeriod(records, latest, metricKey) {
   }
 
   return {
-    year_start: yearStartStr,
-    month_start: monthStartStr,
-    year_delta: delta(yearBase),
-    month_delta: delta(monthBase),
+    baseline_date: BASE_DATE,
+    month_delta: delta(base),
+    year_delta: delta(base),
   };
 }
 

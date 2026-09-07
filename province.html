@@ -127,7 +127,7 @@ tr:hover td { background:color-mix(in srgb, var(--card) 96%, var(--border)); }
   <div class="note" style="margin-top:4px;">
     <b>数据说明</b> · 数据自动抓取自蔚来官网充电地图（<code>charger-map</code>）公开接口，按 <b>标准行政区划代码（GB/T 2260）</b> 逐省查询换电站数量（<code>swap_station_num_for_com</code>）。<br>
     · 覆盖 <b>全国 31 个省级行政区</b>（不含港澳台）；换电站为<b>累计值</b>，随每日抓取自动增长。<br>
-    · 「各省合计」= 31 省数值之和（可能略小于官网"全国"口径，因部分高速/跨省站点未计入单一省份）。<br>
+    · 顶部 <b>「换电站总数（今日末）」</b> 取自 NIO 全国接口（与官网充电地图一致），<b>分省明细仅含明确归入省级行政区的换电站</b>；两者差额主要为部分未单独计入省份的高速/特殊换电站。<br>
     · <b>本月新增换电站最多的省份</b>：各省当前累计 − 项目历史起点 <b>2026-09-07</b> 该省累计，取增量最大者。<br>
     · <b>深圳市换电站总数</b>：以地级市代码 <code>440300</code> 单独查询接口，与省级同维度。<br>
     · 数据为<b>每日累计值</b>，随每日抓取自动增长；趋势图展示选中省份逐日变化。<br>
@@ -196,8 +196,13 @@ function renderKpis(){
   if (!bs.length) { grid.innerHTML = ''; return; }
   const vals = latestByProv();
   const entries = Object.entries(vals).map(([code, v]) => ({ code, name: dashboard.provinces[code], v: Number(v)||0 }));
+  // 分省明细求和（仅作参考展示，不直接显示为"合计"）
   const sum = entries.reduce((s,e)=>s+e.v,0);
   const top = [...entries].sort((a,b)=>b.v-a.v)[0] || {};
+
+  // 顶部"换电站总数（今日末）"以 NIO 全国接口为准，与全国看板一致；
+  // NIO 全国口径 = 31 省之和 + 部分未单独计入省份的高速/特殊换电站（通常差 100~150）。
+  const nationalTotal = Number(dashboard.national_swap_station_total) || sum;
 
   // 本月新增换电站最多的省份（基准日固定为 2026-09-07）
   const period = dashboard.period || {};
@@ -212,13 +217,13 @@ function renderKpis(){
   const shenzhen = Number(cityLatest['440300']) || 0;
 
   const defs = [
-    { label:`31省合计（今日末）`, value: fmt(sum)+' <small>座</small>', c:'#E60012' },
+    { label:`换电站总数（今日末）`, value: fmt(nationalTotal)+' <small>座</small>', c:'#E60012', tip:'NIO 全国口径，与官网充电地图一致' },
     { label:'换电站最多的省份', value: `${top.name||'—'} <small>${fmt(top.v)} 座</small>`, c:'#1E88E5' },
     { label:'本月新增换电站最多的省份', value: topProvinceLabel, c:'#FB8C00' },
     { label:'深圳市换电站总数', value: `${fmt(shenzhen)} <small>座</small>`, c:'#00ACC1' },
   ];
   grid.innerHTML = defs.map(d=>`
-    <div class="kpi" style="--c:${d.c}">
+    <div class="kpi" style="--c:${d.c}"${d.tip?` title="${d.tip}"`:''}>
       <div class="kpi-label">${d.label}</div>
       <div class="kpi-value">${d.value}</div>
     </div>`).join('');

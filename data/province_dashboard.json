@@ -1,6 +1,6 @@
 {
   "latest_date": "2026-09-07",
-  "generated_at": "2026-09-07T12:36:37.013Z",
+  "generated_at": "2026-09-07T12:46:01.160Z",
   "total_days": 1,
   "provinces": {
     "110000": "北京",
@@ -71,6 +71,7 @@
   "cities": {
     "440300": "深圳"
   },
+  "national_swap_station_total": 4071,
   "latest": {
     "date": "2026-09-07",
     "values": {

@@ -11,6 +11,7 @@ const ROOT = path.join(__dirname, '..');
 const DATA_DIR = path.join(ROOT, 'data');
 const HIST = path.join(DATA_DIR, 'province_history.json');
 const OUT = path.join(DATA_DIR, 'province_dashboard.json');
+const NATIONAL_HIST = path.join(DATA_DIR, 'history.json');
 
 // 省份代码 -> 名称
 const PROVINCE_NAMES = {
@@ -96,6 +97,18 @@ function main() {
 
   const latest = history[history.length - 1];
 
+  // 读取全国历史，取最新一条记录的 swap_station_num_for_com（与全国看板一致的口径）
+  let nationalSwapTotal = null;
+  if (fs.existsSync(NATIONAL_HIST)) {
+    try {
+      const nh = JSON.parse(fs.readFileSync(NATIONAL_HIST, 'utf-8'));
+      if (nh.length) {
+        const last = nh[nh.length - 1];
+        nationalSwapTotal = Number(last.swap_station_num_for_com) || null;
+      }
+    } catch (_) {}
+  }
+
   // 计算各省逐日新增（用于"本月新增最多"等聚合）
   const dailyDeltas = computeDeltasByProv(history);
   const latestDeltas = dailyDeltas[dailyDeltas.length - 1].deltas || {};
@@ -138,6 +151,8 @@ function main() {
     provinces: PROVINCE_NAMES,
     order: ORDER,
     cities: CITY_NAMES,
+    // 全国口径（用于分省页面顶部"换电站总数"卡片，与全国看板一致）
+    national_swap_station_total: nationalSwapTotal,
     latest: {
       date: latest.date,
       values: latest.values,

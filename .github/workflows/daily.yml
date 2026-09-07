@@ -9,11 +9,8 @@ on:
     # UTC 00:30 = 北京时间 08:30。GitHub cron 有 5-30 分钟延迟
     - cron: '30 0 * * *'
   workflow_dispatch:        # 允许在 GitHub 网页手动触发
-  push:
-    paths:
-      - 'scraper/**'
-      - 'aggregate/**'
-      - '.github/workflows/daily.yml'
+  # 注意：不监听 push 触发器，避免与 schedule 撞车时产生 merge conflict
+  # 改源码后想立即跑一次抓取，请手动点 workflow_dispatch 或改 schedule 时间
 
 permissions:
   contents: write            # 允许 push 回 main
@@ -36,6 +33,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      - name: 防御：清理 data/ 可能残留的 git 冲突标记
+        # 防御层：若之前 push 撞车导致 HEAD 的 data/ 包含 <<<<<<< 标记，
+        # 丢弃 HEAD 的污染版本（scraper 会马上重写）
+        run: |
+          git checkout HEAD -- data/ 2>/dev/null || true
+          # 额外保险：如果文件仍含冲突标记，从 git 历史里 grep 排除
+          if grep -rl '<<<<<<< HEAD' data/ 2>/dev/null; then
+            echo "::warning::data/ still has conflict markers after checkout, will be overwritten by scraper"
+          fi
 
       - name: 抓取 NIO 当日数据
         run: node scraper/nio_http.js
@@ -63,6 +70,11 @@ jobs:
         run: |
           git config user.name "NIO Stats Bot"
           git config user.email "actions@users.noreply.github.com"
+          # 再次防御：抓取/聚合后 data/ 如果意外还有冲突标记，丢弃污染部分
+          if grep -rl '<<<<<<< HEAD' data/ 2>/dev/null; then
+            echo "::error::data/ contains conflict markers after scraper. Aborting."
+            exit 1
+          fi
           git add data/
           git commit -m "chore(data): daily NIO stats $(date -u '+%Y-%m-%d') [skip ci]"
           git push

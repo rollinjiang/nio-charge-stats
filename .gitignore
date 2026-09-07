@@ -1,0 +1,20 @@
+# 浏览器档案与抓取调试
+.browser-profile/
+.probe/
+.tmp_*.js
+.tmp_*.png
+
+# Node
+node_modules/
+*.log
+
+# WorkBuddy 内部数据
+.workbuddy/
+
+# 原始抓取数据（仓库里只保留聚合后的 history.json / dashboard.json）
+data/latest_raw.json
+data/latest_parsed.json
+data/latest.json
+
+# 临时验证产物
+.verify_*.png

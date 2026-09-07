@@ -1,0 +1,62 @@
+# ============================================================
+# NIO 充换电站数据看板 · 云端定时抓取
+# 每天 UTC 00:30 (CST 08:30) 触发，抓取+聚合+提交到 main
+# ============================================================
+name: Daily NIO stats
+
+on:
+  schedule:
+    # UTC 00:30 = 北京时间 08:30。GitHub cron 有 5-30 分钟延迟
+    - cron: '30 0 * * *'
+  workflow_dispatch:        # 允许在 GitHub 网页手动触发
+  push:
+    paths:
+      - 'scraper/**'
+      - 'aggregate/**'
+      - '.github/workflows/daily.yml'
+
+permissions:
+  contents: write            # 允许 push 回 main
+
+concurrency:
+  group: daily-nio
+  cancel-in-progress: false  # 不取消进行中的任务
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0      # 需要完整 history 以便 commit
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 抓取 NIO 当日数据
+        run: node scraper/nio_http.js
+
+      - name: 聚合指标 (日/周/月/年)
+        run: node aggregate/agg.js
+
+      - name: 检查变更
+        id: diff
+        run: |
+          if git diff --staged --quiet && git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 提交并推送
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "NIO Stats Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/
+          git commit -m "chore(data): daily NIO stats $(date -u '+%Y-%m-%d') [skip ci]"
+          git push

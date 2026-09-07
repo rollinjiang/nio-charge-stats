@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NIO 充换电指标看板</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+:root {
+  --bg: #f5f7fa; --card: #ffffff; --border: #e6e9f0; --text: #1f2733; --muted: #6b7686;
+  --accent: #E60012; --blue: #1E88E5; --green: #43A047; --orange: #FB8C00; --purple: #8E24AA; --teal: #00ACC1;
+  --shadow: 0 1px 3px rgba(16,24,40,.06), 0 1px 2px rgba(16,24,40,.04);
+  --radius: 14px;
+}
+[data-theme="dark"] {
+  --bg: #0f1419; --card: #1a2129; --border: #2c3640; --text: #e6eaf0; --muted: #8a94a6;
+  --shadow: 0 1px 3px rgba(0,0,0,.4);
+}
+* { margin:0; padding:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; }
+body { background:var(--bg); color:var(--text); transition:background .3s,color .3s; min-height:100vh; }
+
+.topbar { position:sticky; top:0; z-index:20; backdrop-filter:blur(10px);
+  background:color-mix(in srgb, var(--bg) 78%, transparent);
+  border-bottom:1px solid var(--border); }
+.topbar-inner { max-width:1240px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.brand { display:flex; align-items:center; gap:12px; }
+.logo { width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#E60012,#ff5a3c); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:18px; }
+.brand-title { font-size:18px; font-weight:700; letter-spacing:-.2px; }
+.brand-sub { font-size:12px; color:var(--muted); }
+.controls { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.seg { display:inline-flex; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:3px; }
+.seg button { border:none; background:transparent; color:var(--muted); padding:6px 14px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; transition:.2s; }
+.seg button.active { background:var(--accent); color:#fff; }
+.seg button:hover:not(.active) { color:var(--text); }
+.iconbtn { width:36px; height:36px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--text); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px; }
+.updated { font-size:12px; color:var(--muted); }
+.src-tag { display:inline-block; font-size:11px; font-weight:600; padding:2px 7px; border-radius:6px; background:var(--chip); color:var(--muted); margin-left:6px; vertical-align:middle; }
+
+.wrap { max-width:1240px; margin:0 auto; padding:20px; }
+.kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:18px; }
+.kpi { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+.kpi::before { content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--c,#E60012); }
+.kpi-label { font-size:13px; color:var(--muted); font-weight:600; }
+.kpi-value { font-size:34px; font-weight:800; letter-spacing:-1px; margin-top:6px; line-height:1.1; }
+.kpi-value small { font-size:15px; font-weight:600; color:var(--muted); }
+.kpi-foot { margin-top:8px; font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px; }
+.delta { font-weight:700; padding:2px 7px; border-radius:6px; font-size:12px; }
+.delta.up { color:#D32F2F; background:rgba(211,47,47,.1); }   /* 涨 → 红（A股惯例） */
+.delta.down { color:#2E7D32; background:rgba(46,125,50,.1); } /* 跌 → 绿 */
+.delta.flat { color:var(--muted); background:rgba(107,118,134,.1); }
+
+.row { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px; }
+.panel { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; box-shadow:var(--shadow); }
+.panel-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.panel-title { font-size:14px; font-weight:700; }
+.panel-hint { font-size:12px; color:var(--muted); }
+.chart { width:100%; }
+.chart-lg { height:380px; }
+.chart-md { height:300px; }
+
+.legend-note { display:flex; gap:14px; flex-wrap:wrap; padding:8px 0 4px; }
+.legend-note span { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); }
+.dot { width:10px; height:10px; border-radius:3px; display:inline-block; }
+
+.note { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:14px 18px; font-size:12px; color:var(--muted); line-height:1.7; box-shadow:var(--shadow); }
+.note b { color:var(--text); }
+
+.loaderr { color:#D32F2F; padding:30px; text-align:center; }
+
+@media (max-width:1100px){ .kpis{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:900px){ .row{grid-template-columns:1fr;} .kpis{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:600px){ .kpis{grid-template-columns:1fr;} .kpi-value{font-size:28px;} .topbar-inner{padding:12px 14px;} .wrap{padding:14px;} }
+html[data-theme="dark"] .delta.up{color:#FF6B6B;} html[data-theme="dark"] .delta.down{color:#7AC77A;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="logo">N</div>
+      <div>
+        <div class="brand-title">NIO 充换电指标看板</div>
+        <div class="brand-sub" id="subtitle">数据源：蔚来官网充电地图</div>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="seg" id="timeSeg">
+        <button data-t="day" class="active">日</button>
+        <button data-t="week">周</button>
+        <button data-t="month">月</button>
+        <button data-t="year">年</button>
+      </div>
+      <button class="iconbtn" id="themeBtn" title="切换主题">🌗</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="updated" id="updated" style="margin-bottom:12px;">加载中…</div>
+
+  <div class="kpis" id="kpiGrid"></div>
+
+  <div class="row">
+    <div class="panel">
+      <div class="panel-head"><span class="panel-title">充换电站 · 规模趋势</span><span class="panel-hint" id="chart1Hint"></span></div>
+      <div class="chart chart-lg" id="chartMain"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><span class="panel-title">换电站构成</span><span class="panel-hint">换电站 vs 高速换电站</span></div>
+      <div class="chart chart-lg" id="chartSwap"></div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="panel">
+      <div class="panel-head"><span class="panel-title">各指标占比</span><span class="panel-hint num-units"></span></div>
+      <div class="chart chart-md" id="chartPie"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><span class="panel-title">最近记录明细</span><span class="panel-hint">最新若干日</span></div>
+      <div class="chart chart-md" id="chartDetail"></div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>数据说明</b> · 数据自动抓取自蔚来官网充电地图（<code>charger-map</code>）公开接口，无需登录。<br>
+    · <b>蔚来能源充换电站总数</b>（<code>power_swap_charge_device_num_total</code>）= 换电站数量 + 充电站数量。<br>
+    · <b>蔚来能源充电站数量</b>（<code>power_charge_station_device_num_total</code>）为充电站<b>座数</b>；已验证：换电站 4,070 + 充电站 5,252 = 9,322，与充换电站总数完全吻合。<br>
+    · 「高速公路换电站」对应城际高速换电站（<code>intercity_swap_station_num</code>）。<br>
+    · 更新频率：<b>每天</b>。趋势图随每日积累自动增长。指标为<b>累计值</b>，周/月/年维度展示周期末快照与周期内变化。
+  </div>
+</div>
+
+<script>
+const METRIC_DEF = {
+  power_swap_charge_device_num_total: {label:'蔚来能源充换电站总数', color:'#E60012'},
+  swap_station_num_for_com:           {label:'换电站数量',       color:'#1E88E5'},
+  intercity_swap_station_num:         {label:'高速公路换电站',   color:'#43A047'},
+  power_charge_station_device_num_total:{label:'蔚来能源充电站数量', color:'#FB8C00'},
+  power_charge_device_num_total:      {label:'充电设备总数',     color:'#8E24AA'},
+  public_charger_num:                 {label:'公共充电桩数',     color:'#00ACC1'},
+  charger_other_brand_energy_rate:    {label:'其他品牌充电能量占比(%)', color:'#7B1FA2'},
+};
+
+let theme = localStorage.getItem('nio-theme') || 'light';
+let dashboard = null;
+let currentTime = 'day';
+let realtime = null;   // 实时接口数据（浏览器直接请求 NIO，CORS 已开放）
+const charts = {};
+
+// 远程数据源：留空 = 读取本地 data/dashboard.json（适合本地/离线/WorkBuddy 部署）
+// 填入 raw.githubusercontent.com 地址 = 看板自动从 GitHub 仓库拉数据（适合 WorkBuddy / GitHub Pages 双部署）
+// 例如：'https://raw.githubusercontent.com/<user>/<repo>/main/data'
+const REMOTE_DATA_BASE = '__REMOTE_DATA_BASE__';
+
+// ============================================================
+// 实时接口：CORS 已开放(access-control-allow-origin: *)，
+// 浏览器可直接请求，无需后端/定时任务。即使电脑未开机，
+// 打开页面也能看到最新真实数据。
+// ============================================================
+const REALTIME_API = 'https://chargermap-fe-gateway.nio.com/pe/bff/gateway/powermap/h5/charge-map/v1/indicator/basic/summary';
+const REALTIME_COMMON = 'app_ver=5.2.0&client=pc&container=brower&lang=zh&region=CN&app_id=100119&channel=official&brand=nio';
+const REALTIME_INDICATORS = [
+  'power_swap_charge_device_num_total','power_charge_station_device_num_total',
+  'swap_station_num_for_com','intercity_swap_station_num',
+  'power_charge_device_num_total','public_charger_num','charger_other_brand_energy_rate',
+];
+
+async function fetchRealtime(){
+  try{
+    const url = `${REALTIME_API}?${REALTIME_COMMON}&indicators=${REALTIME_INDICATORS.join(',')}&dim_code=region_code&dim_value=000000&timestamp=${Date.now()}`;
+    const res = await fetch(url, { headers:{accept:'application/json'} });
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const json = await res.json();
+    const map = json?.data?.indicator_map || {};
+    const out = {};
+    for(const [code,item] of Object.entries(map)){
+      const inner = item?.indicator_item_map || {};
+      for(const [,v] of Object.entries(inner)) out[code] = v?.indicator_value ?? v;
+    }
+    if(Object.keys(out).length) return out;
+    throw new Error('empty');
+  }catch(e){
+    console.warn('[realtime] 实时数据获取失败，回退到快照:', e.message);
+    return null;
+  }
+}
+
+const accentColor = () => document.documentElement.getAttribute('data-theme') === 'dark'
+  ? ['#0f1419','#1a2129','#2c3640','#e6eaf0','#8a94a6','#6b7686']
+  : ['#f5f7fa','#ffffff','#e6e9f0','#1f2733','#6b7686','#e9edf3'];
+
+function fmt(n){
+  if(n==null||isNaN(n)) return '—';
+  if(n>=10000) return (n/10000).toFixed(1)+'万';
+  return Number(n).toLocaleString('zh-CN');
+}
+function fmtFull(n){ return n==null||isNaN(n)?'—':Number(n).toLocaleString('zh-CN'); }
+
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme',theme);
+  localStorage.setItem('nio-theme',theme);
+  if(dashboard) renderAll();
+}
+
+const TIME_KEY = { day:'daily', week:'weekly', month:'monthly', year:'yearly' };
+function getSeries(data, timeT){
+  const realKey = TIME_KEY[timeT] || timeT;
+  let arr = data[realKey] ? Object.values(data[realKey]) : [];
+  if(!arr.length) return [];
+  // arr[0] 是 {label,color,unit,points:[]}
+  const series = arr.map(s => ({
+    name: s.label, color: s.color, unit: s.unit,
+    points: s.points.map(p => ({x:p.label, y:+p.y||0})),
+  }));
+  return series;
+}
+
+function xAxisLabels(timeT, series){
+  // 用第一个有数据的 series 的 x 轴
+  for(const s of series){ if(s.points.length) return s.points.map(p=>p.x); }
+  return [];
+}
+
+function buildKpis(){
+  const latest = dashboard.latest;
+  const defs = [
+    {key:'power_swap_charge_device_num_total'},
+    {key:'power_charge_station_device_num_total'},
+    {key:'swap_station_num_for_com'},
+    {key:'intercity_swap_station_num'},
+  ];
+  const grid = document.getElementById('kpiGrid');
+  grid.innerHTML = '';
+  for(const d of defs){
+    const m = latest[d.key] || {};
+    const color = METRIC_DEF[d.key].color;
+    // 优先用实时值（浏览器直连接口），拿不到才用定时抓取的快照
+    const rtVal = realtime ? Number(realtime[d.key]) : null;
+    const useRealtime = rtVal != null && !isNaN(rtVal);
+    const showVal = useRealtime ? rtVal : m.value;
+
+    let deltaHtml = '<span class="delta flat">首日数据</span>';
+    if(m.delta!=null){
+      const cls = m.delta>0?'up':(m.delta<0?'down':'flat');
+      const arrow = m.delta>0?'▲':(m.delta<0?'▼':'—');
+      const unit = d.key==='charger_other_brand_energy_rate'?'': '个';
+      deltaHtml = `<span class="delta ${cls}">${arrow} ${m.delta>0?'+':''}${fmt(m.delta)}${unit||''}</span> 较前${m.delta_days?m.delta_days+'日':'日'}`;
+    }
+    const badge = useRealtime
+      ? '<span style="color:#43A047;font-weight:700;">⚡ 实时</span>'
+      : '<span style="opacity:.7;">📸 快照</span>';
+    const card = document.createElement('div');
+    card.className='kpi'; card.style.setProperty('--c',color);
+    card.innerHTML = `
+      <div class="kpi-label">${m.label||METRIC_DEF[d.key].label} ${badge}</div>
+      <div class="kpi-value">${fmtFull(showVal)}</div>
+      <div class="kpi-foot">${deltaHtml}</div>`;
+    grid.appendChild(card);
+  }
+}
+
+function renderMain(){
+  const el = document.getElementById('chartMain');
+  if(!charts.main) charts.main = echarts.init(el);
+  const series = getSeries(dashboard, currentTime);
+  const center = accentColor();
+  const show = series.filter(s=>s.points.length);
+  const chart = show.length ? show.slice(0,3) : [];
+  const option = {
+    grid:{top:50,left:70,right:30,bottom:50},
+    tooltip:{trigger:'axis', valueFormatter:v=>v==null?'—':Number(v).toLocaleString('zh-CN')},
+    legend:{top:6, textStyle:{color:center[3]}},
+    xAxis:{type:'category', data:xAxisLabels(currentTime, chart), axisLabel:{color:center[4]}, axisLine:{lineStyle:{color:center[2]}}},
+    yAxis:{type:'value', scale:true, axisLabel:{color:center[4], formatter:v=>fmt(+v)}, splitLine:{lineStyle:{color:center[5]}}},
+    series: chart.map(s=>({
+      name:s.name, type:'line', smooth:true, symbolSize:10, showSymbol:true, data:s.points.map(p=>p.y),
+      lineStyle:{width:3, color:s.color}, itemStyle:{color:s.color},
+      areaStyle:{color: chartArt(s.color)},
+      label:{show: s.points.length<=3, formatter:p=>Number(p.value).toLocaleString('zh-CN'), color:'#6b7686', position:'top'},
+    })),
+  };
+  charts.main.setOption(option, true);
+}
+
+function chartArt(hex){
+  return {
+    type:'linear', x:0,y:0,x2:0,y2:1,
+    colorStops:[{offset:0,color:hex+'55'},{offset:1,color:hex+'00'}]
+  };
+}
+
+function renderSwap(){
+  const el = document.getElementById('chartSwap');
+  if(!charts.swap) charts.swap = echarts.init(el);
+  const series = getSeries(dashboard, currentTime);
+  const swap = series.find(s=>s.name.includes('换电站数量')) || series.find(s=>s.name.includes('换电站'));
+  const hs = series.find(s=>s.name.includes('高速公路')||s.name.includes('高速'));
+  if(!swap){ charts.swap.clear(); return; }
+  const xdata = swap.points.map(p=>p.x);
+  const swapVals = swap.points.map(p=>p.y);
+  const hsVals = (hs?hs.points:[]).map(p=>p.y);
+  while(hsVals.length<swapVals.length) hsVals.unshift(null);
+  const center = accentColor();
+  const option = {
+    grid:{top:50,left:70,right:30,bottom:50},
+    tooltip:{trigger:'axis', valueFormatter:v=>v==null?'—':Number(v).toLocaleString('zh-CN')},
+    legend:{top:6, textStyle:{color:center[3]}},
+    xAxis:{type:'category', data:xdata, axisLabel:{color:center[4]}, axisLine:{lineStyle:{color:center[2]}}},
+    yAxis:{type:'value', scale:true, axisLabel:{color:center[4], formatter:v=>fmt(+v)}, splitLine:{lineStyle:{color:center[5]}}},
+    series:[
+      {name:'换电站数量', type:'bar', data:swapVals, itemStyle:{color:'#1E88E5',borderRadius:[4,4,0,0]}, barMaxWidth:26, label:{show:swapVals.length<=6&&xdata.length>0, formatter:p=>Number(p.value).toLocaleString('zh-CN'), color:'#6b7686', position:'top'}},
+      {name:'高速公路换电站', type:'line', smooth:true, data:hsVals, itemStyle:{color:'#43A047'}, lineStyle:{width:3,color:'#43A047'}, symbolSize:9, showSymbol:true, label:{show:swapVals.length<=6&&xdata.length>0, formatter:p=>Number(p.value).toLocaleString('zh-CN'), color:'#6b7686', position:'top'}},
+    ],
+  };
+  charts.swap.setOption(option, true);
+}
+
+function renderPie(){
+  const el = document.getElementById('chartPie');
+  if(!charts.pie) charts.pie = echarts.init(el);
+  const latest = dashboard.latest;
+  // 选取几个核心构成
+  const items = [
+    {name:'换电站', value:+latest.swap_station_num_for_com?.value||0, color:'#1E88E5'},
+    {name:'充电站', value:+latest.power_charge_station_device_num_total?.value||0, color:'#FB8C00'},
+    {name:'充电设备', value:+latest.power_charge_device_num_total?.value||0, color:'#8E24AA'},
+  ];
+  const center = accentColor();
+  const option = {
+    tooltip:{trigger:'item', formatter:p=>`${p.name}<br>${Number(p.value).toLocaleString('zh-CN')} (${p.percent}%)`},
+    legend:{bottom:0, textStyle:{color:center[3]}},
+    series:[{
+      type:'pie', radius:['38%','62%'], center:['50%','46%'],
+      itemStyle:{borderRadius:6, borderColor:center[1], borderWidth:2},
+      label:{show:true, formatter:'{b}\n{d}%', color:center[3]},
+      data:items,
+    }],
+  };
+  charts.pie.setOption(option, true);
+}
+
+function renderDetail(){
+  const el = document.getElementById('chartDetail');
+  if(!charts.detail) charts.detail = echarts.init(el);
+  const series = getSeries(dashboard, 'day');
+  const baseSeries = series.find(s=>s.name.includes('充换电站')) || series[0];
+  if(!baseSeries){ charts.detail.clear(); return; }
+  const pts = baseSeries.points;
+  const show = pts.length > 20 ? pts.slice(-20) : pts; // 显示最近20天
+  const center = accentColor();
+  const option = {
+    grid:{top:40,left:70,right:30,bottom:50},
+    tooltip:{trigger:'axis', valueFormatter:v=>v==null?'—':Number(v).toLocaleString('zh-CN')},
+    xAxis:{type:'category', data:show.map(p=>p.x), axisLabel:{color:center[4], formatter:v=>v.slice(5)}, axisLine:{lineStyle:{color:center[2]}}},
+    yAxis:{type:'value', scale:true, axisLabel:{color:center[4], formatter:v=>fmt(+v)}, splitLine:{lineStyle:{color:center[5]}}},
+    series:[{name:'充换电站总数（近20日）', type:'line', data:show.map(p=>p.y), smooth:true,
+      lineStyle:{width:3,color:'#E60012'}, itemStyle:{color:'#E60012'}, symbolSize:7, showSymbol:true,
+      areaStyle:{color:'rgba(230,0,18,0.08)'} }],
+  };
+  charts.detail.setOption(option, true);
+}
+
+function renderAll(){
+  const sub = dashboard ? `数据源：蔚来官网充电地图 · 最新 ${dashboard.latest_date} · 已积累 ${dashboard.total_days} 天` : '';
+  document.getElementById('subtitle').textContent = sub;
+  document.getElementById('updated').textContent = `数据更新时间：${dashboard ? new Date(dashboard.generated_at).toLocaleString('zh-CN') : '—'}`;
+  buildKpis();
+  renderMain();
+  renderSwap();
+  renderPie();
+  renderDetail();
+  charts.main && charts.main.resize();
+  charts.swap && charts.swap.resize();
+  charts.pie && charts.pie.resize();
+  charts.detail && charts.detail.resize();
+}
+
+function loadData(){
+  // 数据源：远程 (GitHub raw) 优先，本地兜底
+  const sources = [];
+  if (REMOTE_DATA_BASE && REMOTE_DATA_BASE !== '__REMOTE_DATA_BASE__') {
+    sources.push(REMOTE_DATA_BASE + '/dashboard.json');
+  }
+  sources.push('data/dashboard.json');
+  loadDashboardSequential(sources, 0);
+
+  // 实时数据并行加载（KPI 卡片用实时值）
+  fetchRealtime().then(rt=>{
+    if(rt){
+      realtime = rt;
+      if(dashboard){ buildKpis(); updateUpdatedNote(); }
+    }
+  });
+}
+
+function loadDashboardSequential(urls, idx){
+  if (idx >= urls.length) {
+    document.getElementById('updated').innerHTML = `<span class="loaderr">数据加载失败：所有数据源均不可用。${urls.join(' / ')}</span>`;
+    return;
+  }
+  const url = urls[idx];
+  fetch(url, { cache: 'no-cache' })
+    .then(r => {
+      if (!r.ok) throw new Error(`HTTP ${r.status} @ ${url}`);
+      return r.json();
+    })
+    .then(d => {
+      dashboard = d;
+      renderAll();
+      const tag = document.getElementById('dataSourceTag');
+      if (tag) {
+        if (url.startsWith('http')) tag.textContent = '☁ 远程';
+        else tag.textContent = '📁 本地';
+      }
+    })
+    .catch(() => loadDashboardSequential(urls, idx + 1));
+}
+
+function updateUpdatedNote(){
+  const note = document.getElementById('updated');
+  if(realtime){
+    note.innerHTML = `⚡ <b style="color:#43A047;">实时数据</b>（直接取自蔚来接口，${new Date().toLocaleString('zh-CN')}）　·　趋势图来自每日自动抓取（最新 ${dashboard?dashboard.latest_date:'—'}，已积累 ${dashboard?dashboard.total_days:0} 天）`;
+  }
+}
+
+document.getElementById('timeSeg').addEventListener('click', e=>{
+  if(e.target.tagName!=='BUTTON') return;
+  currentTime = e.target.dataset.t;
+  document.querySelectorAll('#timeSeg button').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  renderAll();
+});
+document.getElementById('themeBtn').addEventListener('click', ()=>{ theme = theme==='light'?'dark':'light'; applyTheme(); });
+
+window.addEventListener('resize', ()=>{ Object.values(charts).forEach(c=>c&&c.resize()); });
+
+// init
+document.documentElement.setAttribute('data-theme', theme);
+loadData();
+</script>
+</body>
+</html>

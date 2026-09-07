@@ -1,0 +1,402 @@
+{
+  "generated_at": "2026-09-07T04:30:44.096Z",
+  "latest_date": "2026-09-07",
+  "total_days": 1,
+  "metrics": [
+    {
+      "key": "power_swap_charge_device_num_total",
+      "label": "蔚来能源充换电站总数",
+      "short": "充换电站总数",
+      "color": "#E60012",
+      "unit": ""
+    },
+    {
+      "key": "swap_station_num_for_com",
+      "label": "换电站数量",
+      "short": "换电站",
+      "color": "#1E88E5",
+      "unit": ""
+    },
+    {
+      "key": "intercity_swap_station_num",
+      "label": "高速公路换电站",
+      "short": "高速换电站",
+      "color": "#43A047",
+      "unit": ""
+    },
+    {
+      "key": "power_charge_station_device_num_total",
+      "label": "蔚来能源充电站数量",
+      "short": "充电站",
+      "color": "#FB8C00",
+      "unit": ""
+    },
+    {
+      "key": "power_charge_device_num_total",
+      "label": "充电设备总数",
+      "short": "充电设备",
+      "color": "#8E24AA",
+      "unit": ""
+    },
+    {
+      "key": "public_charger_num",
+      "label": "公共充电桩数",
+      "short": "公共充电桩",
+      "color": "#00ACC1",
+      "unit": ""
+    }
+  ],
+  "latest": {
+    "power_swap_charge_device_num_total": {
+      "label": "蔚来能源充换电站总数",
+      "short": "充换电站总数",
+      "value": 9322,
+      "delta": null,
+      "delta_days": null,
+      "prev_value": null
+    },
+    "swap_station_num_for_com": {
+      "label": "换电站数量",
+      "short": "换电站",
+      "value": 4070,
+      "delta": null,
+      "delta_days": null,
+      "prev_value": null
+    },
+    "intercity_swap_station_num": {
+      "label": "高速公路换电站",
+      "short": "高速换电站",
+      "value": 1053,
+      "delta": null,
+      "delta_days": null,
+      "prev_value": null
+    },
+    "power_charge_station_device_num_total": {
+      "label": "蔚来能源充电站数量",
+      "short": "充电站",
+      "value": 5252,
+      "delta": null,
+      "delta_days": null,
+      "prev_value": null
+    },
+    "power_charge_device_num_total": {
+      "label": "充电设备总数",
+      "short": "充电设备",
+      "value": 30280,
+      "delta": null,
+      "delta_days": null,
+      "prev_value": null
+    },
+    "public_charger_num": {
+      "label": "公共充电桩数",
+      "short": "公共充电桩",
+      "value": 1767192,
+      "delta": null,
+      "delta_days": null,
+      "prev_value": null
+    }
+  },
+  "daily": {
+    "power_swap_charge_device_num_total": {
+      "label": "蔚来能源充换电站总数",
+      "color": "#E60012",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026-09-07",
+          "y": 9322,
+          "label": "2026-09-07"
+        }
+      ]
+    },
+    "swap_station_num_for_com": {
+      "label": "换电站数量",
+      "color": "#1E88E5",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026-09-07",
+          "y": 4070,
+          "label": "2026-09-07"
+        }
+      ]
+    },
+    "intercity_swap_station_num": {
+      "label": "高速公路换电站",
+      "color": "#43A047",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026-09-07",
+          "y": 1053,
+          "label": "2026-09-07"
+        }
+      ]
+    },
+    "power_charge_station_device_num_total": {
+      "label": "蔚来能源充电站数量",
+      "color": "#FB8C00",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026-09-07",
+          "y": 5252,
+          "label": "2026-09-07"
+        }
+      ]
+    },
+    "power_charge_device_num_total": {
+      "label": "充电设备总数",
+      "color": "#8E24AA",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026-09-07",
+          "y": 30280,
+          "label": "2026-09-07"
+        }
+      ]
+    },
+    "public_charger_num": {
+      "label": "公共充电桩数",
+      "color": "#00ACC1",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026-09-07",
+          "y": 1767192,
+          "label": "2026-09-07"
+        }
+      ]
+    }
+  },
+  "weekly": {
+    "power_swap_charge_device_num_total": {
+      "label": "蔚来能源充换电站总数",
+      "color": "#E60012",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026-W37",
+          "y": 9322,
+          "label": "2026-W37"
+        }
+      ]
+    },
+    "swap_station_num_for_com": {
+      "label": "换电站数量",
+      "color": "#1E88E5",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026-W37",
+          "y": 4070,
+          "label": "2026-W37"
+        }
+      ]
+    },
+    "intercity_swap_station_num": {
+      "label": "高速公路换电站",
+      "color": "#43A047",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026-W37",
+          "y": 1053,
+          "label": "2026-W37"
+        }
+      ]
+    },
+    "power_charge_station_device_num_total": {
+      "label": "蔚来能源充电站数量",
+      "color": "#FB8C00",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026-W37",
+          "y": 5252,
+          "label": "2026-W37"
+        }
+      ]
+    },
+    "power_charge_device_num_total": {
+      "label": "充电设备总数",
+      "color": "#8E24AA",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026-W37",
+          "y": 30280,
+          "label": "2026-W37"
+        }
+      ]
+    },
+    "public_charger_num": {
+      "label": "公共充电桩数",
+      "color": "#00ACC1",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026-W37",
+          "y": 1767192,
+          "label": "2026-W37"
+        }
+      ]
+    }
+  },
+  "monthly": {
+    "power_swap_charge_device_num_total": {
+      "label": "蔚来能源充换电站总数",
+      "color": "#E60012",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026-09",
+          "y": 9322,
+          "label": "2026-09"
+        }
+      ]
+    },
+    "swap_station_num_for_com": {
+      "label": "换电站数量",
+      "color": "#1E88E5",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026-09",
+          "y": 4070,
+          "label": "2026-09"
+        }
+      ]
+    },
+    "intercity_swap_station_num": {
+      "label": "高速公路换电站",
+      "color": "#43A047",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026-09",
+          "y": 1053,
+          "label": "2026-09"
+        }
+      ]
+    },
+    "power_charge_station_device_num_total": {
+      "label": "蔚来能源充电站数量",
+      "color": "#FB8C00",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026-09",
+          "y": 5252,
+          "label": "2026-09"
+        }
+      ]
+    },
+    "power_charge_device_num_total": {
+      "label": "充电设备总数",
+      "color": "#8E24AA",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026-09",
+          "y": 30280,
+          "label": "2026-09"
+        }
+      ]
+    },
+    "public_charger_num": {
+      "label": "公共充电桩数",
+      "color": "#00ACC1",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026-09",
+          "y": 1767192,
+          "label": "2026-09"
+        }
+      ]
+    }
+  },
+  "yearly": {
+    "power_swap_charge_device_num_total": {
+      "label": "蔚来能源充换电站总数",
+      "color": "#E60012",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026",
+          "y": 9322,
+          "label": "2026"
+        }
+      ]
+    },
+    "swap_station_num_for_com": {
+      "label": "换电站数量",
+      "color": "#1E88E5",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026",
+          "y": 4070,
+          "label": "2026"
+        }
+      ]
+    },
+    "intercity_swap_station_num": {
+      "label": "高速公路换电站",
+      "color": "#43A047",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026",
+          "y": 1053,
+          "label": "2026"
+        }
+      ]
+    },
+    "power_charge_station_device_num_total": {
+      "label": "蔚来能源充电站数量",
+      "color": "#FB8C00",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026",
+          "y": 5252,
+          "label": "2026"
+        }
+      ]
+    },
+    "power_charge_device_num_total": {
+      "label": "充电设备总数",
+      "color": "#8E24AA",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026",
+          "y": 30280,
+          "label": "2026"
+        }
+      ]
+    },
+    "public_charger_num": {
+      "label": "公共充电桩数",
+      "color": "#00ACC1",
+      "unit": "",
+      "points": [
+        {
+          "x": "2026",
+          "y": 1767192,
+          "label": "2026"
+        }
+      ]
+    }
+  },
+  "meta": {
+    "daily_count": 1,
+    "weekly_count": 1,
+    "monthly_count": 1,
+    "yearly_count": 1,
+    "first_date": "2026-09-07"
+  }
+}

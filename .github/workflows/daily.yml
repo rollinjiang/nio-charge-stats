@@ -40,8 +40,14 @@ jobs:
       - name: 抓取 NIO 当日数据
         run: node scraper/nio_http.js
 
+      - name: 抓取全国分省换电站数据
+        run: node scraper/nio_province.js
+
       - name: 聚合指标 (日/周/月/年)
         run: node aggregate/agg.js
+
+      - name: 聚合分省指标 (日/周/月/年)
+        run: node aggregate/province_agg.js
 
       - name: 检查变更
         id: diff

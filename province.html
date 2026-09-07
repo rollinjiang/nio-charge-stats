@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NIO 分省换电站统计</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+:root {
+  --bg: #f5f7fa; --card: #ffffff; --border: #e6e9f0; --text: #1f2733; --muted: #6b7686;
+  --accent: #E60012; --blue: #1E88E5; --green: #43A047; --orange: #FB8C00; --purple: #8E24AA; --teal: #00ACC1;
+  --chip: rgba(107,118,134,.12);
+  --shadow: 0 1px 3px rgba(16,24,40,.06), 0 1px 2px rgba(16,24,40,.04);
+  --radius: 14px;
+}
+[data-theme="dark"] {
+  --bg: #0f1419; --card: #1a2129; --border: #2c3640; --text: #e6eaf0; --muted: #8a94a6; --chip: rgba(138,148,166,.14);
+  --shadow: 0 1px 3px rgba(0,0,0,.4);
+}
+* { margin:0; padding:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; }
+body { background:var(--bg); color:var(--text); transition:background .3s,color .3s; min-height:100vh; }
+
+.topbar { position:sticky; top:0; z-index:20; backdrop-filter:blur(10px);
+  background:color-mix(in srgb, var(--bg) 78%, transparent);
+  border-bottom:1px solid var(--border); }
+.topbar-inner { max-width:1240px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.brand { display:flex; align-items:center; gap:12px; }
+.logo { width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#1E88E5,#00ACC1); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:16px; }
+.brand-title { font-size:18px; font-weight:700; letter-spacing:-.2px; }
+.brand-sub { font-size:12px; color:var(--muted); }
+.controls { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.seg { display:inline-flex; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:3px; }
+.seg button { border:none; background:transparent; color:var(--muted); padding:6px 14px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; transition:.2s; }
+.seg button.active { background:var(--blue); color:#fff; }
+.seg button:hover:not(.active) { color:var(--text); }
+.iconbtn { width:36px; height:36px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--text); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px; }
+.backlink { font-size:13px; color:var(--muted); text-decoration:none; padding:6px 11px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+.backlink:hover { color:var(--text); }
+.updated { font-size:12px; color:var(--muted); }
+.src-tag { display:inline-block; font-size:11px; font-weight:600; padding:2px 7px; border-radius:6px; background:var(--chip); color:var(--muted); margin-left:6px; vertical-align:middle; }
+
+.wrap { max-width:1240px; margin:0 auto; padding:20px; }
+.kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:18px; }
+.kpi { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+.kpi::before { content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--c,#E60012); }
+.kpi-label { font-size:13px; color:var(--muted); font-weight:600; }
+.kpi-value { font-size:34px; font-weight:800; letter-spacing:-1px; margin-top:6px; line-height:1.1; }
+.kpi-foot { margin-top:8px; font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px; }
+.kpi small { font-size:15px; font-weight:600; color:var(--muted); }
+
+.row { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px; }
+.rowfull { grid-template-columns:1fr; }
+.panel { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; box-shadow:var(--shadow); }
+.panel-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.panel-title { font-size:14px; font-weight:700; }
+.panel-hint { font-size:12px; color:var(--muted); }
+.chart { width:100%; }
+.chart-lg { height:420px; }
+.chart-md { height:300px; }
+.chart-sm { height:340px; }
+
+.note { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:14px 18px; font-size:12px; color:var(--muted); line-height:1.7; box-shadow:var(--shadow); }
+.note b { color:var(--text); }
+
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th, td { padding:9px 10px; text-align:left; border-bottom:1px solid var(--border); }
+th { color:var(--muted); font-weight:600; font-size:12px; position:sticky; top:0; background:var(--card); }
+td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; }
+td.rank { color:var(--muted); font-weight:700; width:46px; }
+tr:hover td { background:color-mix(in srgb, var(--card) 96%, var(--border)); }
+.tbl-scroll { max-height:560px; overflow:auto; }
+
+.badge { display:inline-block; font-size:11px; font-weight:700; padding:2px 8px; border-radius:20px; color:#fff; }
+
+.loaderr { color:#D32F2F; padding:30px; text-align:center; }
+
+@media (max-width:1100px){ .kpis{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:900px){ .row{grid-template-columns:1fr;} .kpis{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:600px){ .kpis{grid-template-columns:1fr;} .kpi-value{font-size:28px;} .topbar-inner{padding:12px 14px;} .wrap{padding:14px;} }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="logo">N</div>
+      <div>
+        <div class="brand-title">NIO 分省换电站统计 <span id="dataSourceTag" class="src-tag" title="数据来源">📁 本地</span></div>
+        <div class="brand-sub" id="subtitle">数据源：蔚来官网充电地图 · 分省维度</div>
+      </div>
+    </div>
+    <div class="controls">
+      <a class="backlink" href="index.html">← 返回全国看板</a>
+      <div class="seg" id="timeSeg">
+        <button data-t="day" class="active">日</button>
+        <button data-t="week">周</button>
+        <button data-t="month">月</button>
+        <button data-t="year">年</button>
+      </div>
+      <button class="iconbtn" id="themeBtn" title="切换主题">🌗</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="updated" id="updated" style="margin-bottom:12px;">加载中…</div>
+
+  <div class="kpis" id="kpiGrid"></div>
+
+  <div class="row rowfull">
+    <div class="panel">
+      <div class="panel-head"><span class="panel-title">各省换电站数量（当前统计周期）</span><span class="panel-hint" id="barHint">按数值降序 · 点击柱条联动趋势</span></div>
+      <div class="chart chart-md" id="chartBar"></div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="panel">
+      <div class="panel-head"><span class="panel-title">换电站趋势（选中省份）</span><span class="panel-hint" id="trendHint">点击柱条选择省份</span></div>
+      <div class="chart chart-sm" id="chartTrend"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><span class="panel-title">全国31省 · 换电站总数明细</span><span class="panel-hint" id="tblHint"></span></div>
+      <div class="tbl-scroll">
+        <table id="provTable">
+          <thead><tr><th class="rank">排名</th><th>省份</th><th class="num">换电站（座）</th><th class="num">占比</th></tr></thead>
+          <tbody id="provBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="note" style="margin-top:4px;">
+    <b>数据说明</b> · 数据自动抓取自蔚来官网充电地图（<code>charger-map</code>）公开接口，按 <b>标准行政区划代码（GB/T 2260）</b> 逐省查询换电站数量（<code>swap_station_num_for_com</code>）。<br>
+    · 覆盖 <b>全国 31 个省级行政区</b>（不含港澳台）；换电站为<b>累计值</b>，随每日抓取自动增长。<br>
+    · 「各省合计」= 31 省数值之和（可能略小于官网"全国"口径，因部分高速/跨省站点未计入单一省份）。<br>
+    · 时间维度：日 / 周 / 月 / 年，展示对应周期末的各省快照；趋势图展示选中省随周期的变化。<br>
+    · 更新频率：<b>每天</b>（GitHub Actions 08:30 自动抓取，无需本机开机）。
+  </div>
+</div>
+
+<script>
+let theme = localStorage.getItem('nio-theme') || 'light';
+let dashboard = null;
+let currentTime = 'day';
+let selected = null;          // 当前选中的省 code
+const charts = {};
+
+const REMOTE_DATA_BASE = 'https://raw.githubusercontent.com/rollinjiang/nio-charge-stats/main/data';
+
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('nio-theme', theme);
+  document.querySelectorAll('.chart').forEach(c => { const id=c.id; if(charts[id]) { charts[id].dispose(); charts[id]=null; } });
+  renderAll();
+}
+
+function accent(){ return theme==='dark' ? {
+  bg:'#0f1419', card:'#1a2129', border:'#2c3640', text:'#e6eaf0', muted:'#8a94a6',
+  split:'rgba(138,148,166,.12)'
+} : {
+  bg:'#f5f7fa', card:'#ffffff', border:'#e6e9f0', text:'#1f2733', muted:'#6b7686',
+  split:'rgba(16,24,40,.07)'
+}; }
+
+// 加载数据：远程优先，本地兜底
+function loadData(){
+  const sources = [];
+  if (REMOTE_DATA_BASE) sources.push(REMOTE_DATA_BASE + '/province_dashboard.json');
+  sources.push('data/province_dashboard.json');
+  loadSeq(sources, 0);
+}
+function loadSeq(urls, idx){
+  if (idx >= urls.length) { document.getElementById('updated').innerHTML = `<span class="loaderr">数据加载失败：所有数据源均不可用。${urls.join(' / ')}</span>`; return; }
+  fetch(urls[idx], { cache:'no-cache' })
+    .then(r => { if(!r.ok) throw new Error(`HTTP ${r.status} @ ${urls[idx]}`); return r.json(); })
+    .then(d => { dashboard = d; renderAll();
+      const tag = document.getElementById('dataSourceTag');
+      if (tag) tag.textContent = urls[idx].startsWith('http') ? '☁ 远程' : '📁 本地';
+    })
+    .catch(() => loadSeq(urls, idx+1));
+}
+
+// 当前时间维度下，取该维度 bucket 数组
+function buckets(){ return dashboard ? (dashboard[currentTime === 'day' ? 'daily' : currentTime + 'ly']) : []; }
+function timeKeyOf(b){ return b.key; }
+
+function fmt(n){ return n==null?'—':Number(n).toLocaleString('zh-CN'); }
+
+// 当前周期末各省数值
+function latestByProv(){
+  const bs = buckets();
+  if (!bs.length) return {};
+  return bs[bs.length-1].values || {};
+}
+
+// ---------- 顶部 KPI ----------
+function renderKpis(){
+  const grid = document.getElementById('kpiGrid');
+  const bs = buckets();
+  if (!bs.length) { grid.innerHTML = ''; return; }
+  const vals = latestByProv();
+  const entries = Object.entries(vals).map(([code, v]) => ({ code, name: dashboard.provinces[code], v: Number(v)||0 }));
+  const sum = entries.reduce((s,e)=>s+e.v,0);
+  const top = [...entries].sort((a,b)=>b.v-a.v)[0] || {};
+  const withData = entries.filter(e=>e.v>0).length;
+  const lastKey = timeKeyOf(bs[bs.length-1]);
+
+  const defs = [
+    { label:`31省合计（${timeLabel()}末）`, value: fmt(sum)+' <small>座</small>', c:'#E60012' },
+    { label:'换电站最多的省份', value: `${top.name||'—'} <small>${fmt(top.v)} 座</small>`, c:'#1E88E5' },
+    { label:'有换电站的省份数', value: `${withData} <small>/ 31</small>`, c:'#43A047' },
+    { label:'当前统计周期', value: `${lastKey} <small>· ${bs.length} 个</small>`, c:'#FB8C00' },
+  ];
+  grid.innerHTML = defs.map(d=>`
+    <div class="kpi" style="--c:${d.c}">
+      <div class="kpi-label">${d.label}</div>
+      <div class="kpi-value">${d.value}</div>
+    </div>`).join('');
+}
+function timeLabel(){ return {day:'今日', week:'本周', month:'本月', year:'本年'}[currentTime] || currentTime; }
+
+// ---------- 柱状图：各省换电站 ----------
+function renderBar(){
+  const el = document.getElementById('chartBar');
+  if(!charts.bar) charts.bar = echarts.init(el);
+  const vals = latestByProv();
+  const c = accent();
+  const data = Object.entries(vals).filter(([code,v])=>Number(v)>0).map(([code,v])=>({
+    name: dashboard.provinces[code], value: Number(v), code
+  }));
+  data.length && data.sort((a,b)=>b.value-a.value);
+  const selectedCode = selected || (data.length ? data[0].code : null);
+
+  charts.bar.setOption({
+    grid:{left:70,right:20,top:20,bottom:70},
+    tooltip:{trigger:'axis', axisPointer:{type:'shadow'}, formatter:p=>p[0]?`${p[0].name}：<b>${fmt(p[0].value)}</b> 座<br>(点击柱条加入趋势)` : ''},
+    xAxis:{type:'category', data:data.map(d=>d.name), axisLabel:{color:c.muted, rotate:45, fontSize:11}, axisLine:{lineStyle:{color:c.border}}},
+    yAxis:{type:'value', axisLabel:{color:c.muted, formatter:v=>fmt(v)}, splitLine:{lineStyle:{color:c.split}}},
+    series:[{
+      type:'bar', data:data.map(d=>d.value),
+      barMaxWidth:34,
+      itemStyle:{ color:p=>{
+        const code = data[p.dataIndex].code;
+        if (code === selectedCode) return '#E60012';
+        return '#1E88E5';
+      }, borderRadius:[4,4,0,0] },
+      emphasis:{ itemStyle:{ color:'#E60012' } },
+      label:{show:false},
+    }],
+  }, true);
+
+  // 点击柱条 → 选中省份
+  const detach = (charts.bar._provClick || null);
+  if (detach) detach();
+  const handler = params => { if(params.name!=null){ const d = data.find(x=>x.name===params.name); if(d) selected = d.code; renderBar(); renderTrend(); renderTable(); } };
+  charts.bar.on('click', handler);
+  charts.bar._provClick = () => charts.bar.off('click', handler);
+}
+
+// ---------- 趋势图：选中省份多周期 ----------
+function renderTrend(){
+  const el = document.getElementById('chartTrend');
+  if(!charts.trend) charts.trend = echarts.init(el);
+  const c = accent();
+  const bs = buckets();
+  if (!bs.length) { charts.trend.clear(); return; }
+  // 选中省或默认 Top1
+  let code = selected;
+  if (!code) { const v = latestByProv(); code = Object.entries(v).sort((a,b)=>Number(b[1])-Number(a[1]))[0][0]; }
+  const name = dashboard.provinces[code];
+  const x = bs.map(b=>timeKeyOf(b));
+  const y = bs.map(b=> Number(b.values[code]) || 0 );
+
+  document.getElementById('trendHint').textContent = `省份：${name} · 日/周/月/年时间轴`;
+  charts.trend.setOption({
+    grid:{left:60,right:20,top:30,bottom:50},
+    tooltip:{trigger:'axis', valueFormatter:v=>fmt(v)+' 座'},
+    xAxis:{type:'category', data:x, axisLabel:{color:c.muted}, axisLine:{lineStyle:{color:c.border}}},
+    yAxis:{type:'value', scale:true, axisLabel:{color:c.muted, formatter:v=>fmt(v)}, splitLine:{lineStyle:{color:c.split}}},
+    series:[{
+      name, type:'line', smooth:true, data:y, symbolSize:8, showSymbol:true,
+      lineStyle:{width:3,color:'#E60012'}, itemStyle:{color:'#E60012'},
+      areaStyle:{ color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(230,0,18,.25)'},{offset:1,color:'rgba(230,0,18,0)'}]) },
+      label:{show:bs.length<=2, formatter:p=>fmt(p.value), color:c.muted, position:'top'},
+    }],
+  }, true);
+}
+
+// ---------- 数据表 ----------
+function renderTable(){
+  const body = document.getElementById('provBody');
+  const vals = latestByProv();
+  const rows = Object.entries(vals).map(([code,v])=>({ code, name: dashboard.provinces[code], v: Number(v)||0 }));
+  rows.sort((a,b)=>b.v-a.v);
+  const sum = rows.reduce((s,r)=>s+r.v,0);
+  const max = rows[0] ? rows[0].v : 1;
+  document.getElementById('tblHint').textContent = `${rows.length} 省 · 合计 ${fmt(sum)} 座`;
+
+  body.innerHTML = rows.map((r,i)=>{
+    const pct = sum>0 ? (r.v/sum*100).toFixed(1) : '0.0';
+    const color = r.v===max ? '#E60012' : (r.v>0 ? '#1E88E5' : '#aaa');
+    return `<tr data-code="${r.code}">
+      <td class="rank">${i+1}</td>
+      <td>${r.name}${r.v===max?' <span class="badge" style="background:#E60012">Top</span>':''}</td>
+      <td class="num" style="color:${color};font-weight:700">${fmt(r.v)}</td>
+      <td class="num" style="color:var(--muted)">${pct}%</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderAll(){ renderKpis(); renderBar(); renderTrend(); renderTable(); }
+
+// ---------- 事件 ----------
+document.getElementById('timeSeg').addEventListener('click', e=>{
+  if(e.target.tagName!=='BUTTON') return;
+  currentTime = e.target.dataset.t;
+  document.querySelectorAll('#timeSeg button').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  renderAll();
+});
+document.getElementById('themeBtn').addEventListener('click', ()=>{ theme = theme==='light'?'dark':'light'; applyTheme(); });
+window.addEventListener('resize', ()=>{ Object.values(charts).forEach(ch=>ch&&ch.resize()); });
+
+document.documentElement.setAttribute('data-theme', theme);
+loadData();
+</script>
+</body>
+</html>

@@ -12,7 +12,13 @@ NODE_PATH="/Users/rollin/.workbuddy/binaries/node/workspace/node_modules"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] 开始抓取 NIO 数据（轻量 HTTP 版，无需浏览器）..."
 "$NODE" scraper/nio_http.js
 
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 开始抓取全国分省换电站数据..."
+"$NODE" scraper/nio_province.js
+
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] 开始聚合指标..."
 "$NODE" aggregate/agg.js
 
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] 完成。updated data/dashboard.json"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 开始聚合分省指标..."
+"$NODE" aggregate/province_agg.js
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 完成。updated data/dashboard.json + data/province_dashboard.json"

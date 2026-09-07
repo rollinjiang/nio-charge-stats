@@ -1,11 +1,7 @@
 [
   {
     "date": "2026-09-07",
-<<<<<<< HEAD
     "fetched_at": "2026-09-07T11:22:36.710Z",
-=======
-    "fetched_at": "2026-09-07T11:24:47.569Z",
->>>>>>> 3ae20cb (docs: province page docs + pipeline)
     "values": {
       "110000": 153,
       "120000": 65,

@@ -4,7 +4,9 @@
 // 关键发现：summary 接口用标准行政区划代码(GB/T 2260)作为 dim_value
 //   dim_code=region_code, dim_value=440000 即可拿到该省换电站数
 //   例：广东 440000 → 换电站 488（与官网点击地图后"数据"面板一致）
-// 本脚本每天抓取全国 31 个省级行政区（不含港澳台）的换电站数量
+//   地级市同样适用：深圳 440300 → 94（也走 region_code 维度）
+// 本脚本每天抓取全国 31 个省级行政区（不含港澳台）的换电站数量，
+// 并附抓取深圳市（440300）作为重点城市展示。
 // ============================================================
 const fs = require('fs');
 const path = require('path');
@@ -47,6 +49,11 @@ const PROVINCES = [
   { code: '630000', name: '青海' },
   { code: '640000', name: '宁夏' },
   { code: '650000', name: '新疆' },
+];
+
+// 重点城市（与省份相同维度 region_code，地级市代码 GB/T 2260）
+const CITIES = [
+  { code: '440300', name: '深圳' },
 ];
 
 const HDR = {
@@ -94,19 +101,25 @@ async function fetchProvinceSwap(code) {
 async function main() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 
-  // 并行抓 31 省（每批 6 并发）
-  const results = await mapLimit(PROVINCES, 6, async (p) => {
+  // 并行抓 31 省 + 重点城市（每批 6 并发）
+  const allTargets = [...PROVINCES.map(p => ({ ...p, kind: 'province' })), ...CITIES.map(c => ({ ...c, kind: 'city' }))];
+  const results = await mapLimit(allTargets, 6, async (p) => {
     const v = await fetchProvinceSwap(p.code);
-    return { code: p.code, name: p.name, value: v };
+    return { code: p.code, name: p.name, value: v, kind: p.kind };
   });
 
   const date = todayStr();
   const values = {};
+  const cities = {};
   let okCount = 0;
   for (const r of results) {
-    if (r.value != null) { values[r.code] = r.value; okCount++; }
+    if (r.value != null) {
+      okCount++;
+      if (r.kind === 'city') cities[r.code] = r.value;
+      else values[r.code] = r.value;
+    }
   }
-  if (okCount === 0) throw new Error('所有省份均未返回数据');
+  if (okCount === 0) throw new Error('所有省份/城市均未返回数据');
 
   // 读取历史，按天追加/覆盖
   const histPath = path.join(DATA_DIR, 'province_history.json');
@@ -114,13 +127,22 @@ async function main() {
   if (fs.existsSync(histPath)) {
     try { history = JSON.parse(fs.readFileSync(histPath, 'utf-8')); } catch (_) {}
   }
-  const record = { date, fetched_at: new Date().toISOString(), values };
+  const record = { date, fetched_at: new Date().toISOString(), values, cities };
   const idx = history.findIndex(r => r.date === date);
-  if (idx >= 0) history[idx] = record; else history.push(record);
+  if (idx >= 0) {
+    // 合并：保留旧 cities（缺失时），values 整体替换
+    const old = history[idx];
+    history[idx] = {
+      ...record,
+      cities: Object.keys(cities).length ? cities : (old.cities || {}),
+    };
+  } else {
+    history.push(record);
+  }
   history.sort((a, b) => a.date.localeCompare(b.date));
   fs.writeFileSync(histPath, JSON.stringify(history, null, 2), 'utf-8');
 
-  console.log(`[OK] ${date} 分省换电站 ${okCount}/${PROVINCES.length} 省`);
+  console.log(`[OK] ${date} 分省换电站 ${okCount}/${allTargets.length} 地区（含 ${CITIES.length} 个重点城市）`);
   // 按数值降序打印 Top5 便于人工核对
   const sorted = results.filter(r => r.value != null).sort((a, b) => b.value - a.value);
   for (const r of sorted.slice(0, 5)) {

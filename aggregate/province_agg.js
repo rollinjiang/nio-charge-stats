@@ -25,6 +25,11 @@ const PROVINCE_NAMES = {
 
 const ORDER = Object.keys(PROVINCE_NAMES);
 
+// 重点城市
+const CITY_NAMES = {
+  '440300': '深圳',
+};
+
 function isoWeek(dateStr) {
   const d = new Date(dateStr + 'T00:00:00Z');
   const date = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
@@ -60,6 +65,26 @@ function bucketize(records, keyFn, orderKeyFn) {
   return arr;
 }
 
+// 计算"周期内各省新增"：当前周期末累计值 - 上一周期末累计值
+// 如果没有上一周期，则视为"全量为新增"
+function computeDeltasByProv(dailyRecords) {
+  // dailyRecords 已经按日期升序
+  const out = [];
+  let prevValues = null;
+  for (const r of dailyRecords) {
+    const cur = r.values || {};
+    const deltas = {};
+    for (const code of ORDER) {
+      const curV = Number(cur[code]) || 0;
+      const prevV = prevValues ? (Number(prevValues[code]) || 0) : 0;
+      deltas[code] = prevValues ? Math.max(0, curV - prevV) : curV;
+    }
+    out.push({ date: r.date, deltas, values: cur, cities: r.cities || {} });
+    prevValues = cur;
+  }
+  return out;
+}
+
 function orderKeyFnFor(day) {
   return (k) => (day ? k : k.replace(/-/g, '').replace(/W/g, '')) * 1;
 }
@@ -70,17 +95,89 @@ function main() {
   if (history.length === 0) { console.error('分省历史为空'); process.exit(1); }
 
   const latest = history[history.length - 1];
+
+  // 计算各省逐日新增（用于"本月新增最多"等聚合）
+  const dailyDeltas = computeDeltasByProv(history);
+  const latestDeltas = dailyDeltas[dailyDeltas.length - 1].deltas || {};
+
+  // "本月新增"：本月 1 日及之后所有记录的各省新增之和
+  // 用户语义：本期(月/年)起点至今日各省累计增量
+  const today = new Date();
+  const yearStart = new Date(today.getFullYear(), 0, 1);
+  const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  // 全国本月/本年新增换电站 = 本期起点之后每日新增之和
+  // 由于 history 是按天抓取的"累计快照"，新增 = 当前累计 - 期初前一条记录的累计
+  // 简化：取"当前累计" 与 "期初前最后一条记录累计" 的差
+  const yearStartStr = `${today.getFullYear()}-01-01`;
+  const monthStartStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-01`;
+  // 严格 < 周期起点的最后一条记录作为基线
+  function findBaselineBefore(dateStr) {
+    let base = null;
+    for (const r of history) {
+      if (r.date < dateStr) base = r;
+      else break;
+    }
+    return base;
+  }
+  const yearBase = findBaselineBefore(yearStartStr);
+  const monthBase = findBaselineBefore(monthStartStr);
+
+  // 各省在两个基线下的本期新增
+  function deltasFromBaseline(base) {
+    const out = {};
+    for (const code of ORDER) {
+      const cur = Number(latest.values[code]) || 0;
+      const prev = base ? (Number(base.values[code]) || 0) : 0;
+      out[code] = Math.max(0, cur - prev);
+    }
+    return out;
+  }
+  const yearDeltaByProv = deltasFromBaseline(yearBase);
+  const monthDeltaByProv = deltasFromBaseline(monthBase);
+
+  // "本月新增最多的省份"
+  let monthTopCode = null, monthTopVal = -1;
+  for (const [code, v] of Object.entries(monthDeltaByProv)) {
+    if (v > monthTopVal) { monthTopVal = v; monthTopCode = code; }
+  }
+
+  // 重点城市最新值（如 深圳市）
+  const latestCities = latest.cities || {};
+  const cityLatest = {};
+  for (const code of Object.keys(CITY_NAMES)) {
+    cityLatest[code] = Number(latestCities[code]) || 0;
+  }
+
   const out = {
     latest_date: latest.date,
     generated_at: new Date().toISOString(),
     total_days: history.length,
     provinces: PROVINCE_NAMES,
     order: ORDER,
-    latest: { date: latest.date, values: latest.values },
+    cities: CITY_NAMES,
+    latest: {
+      date: latest.date,
+      values: latest.values,
+      cities: latestCities,
+    },
     daily: bucketize(history, d => d, k => k.slice(0, 10).replace(/-/g, '') * 1),
     weekly: bucketize(history, isoWeek, k => orderKeyFnFor(false)(k)),
     monthly: bucketize(history, monthKey, k => k.replace(/-/g, '') * 1),
     yearly: bucketize(history, yearKey, k => k * 1),
+    // 本期新增相关
+    period: {
+      year_start: yearStartStr,
+      month_start: monthStartStr,
+      month_top_province: monthTopCode ? { code: monthTopCode, name: PROVINCE_NAMES[monthTopCode] || monthTopCode, delta: monthTopVal } : null,
+      month_delta_by_prov: monthDeltaByProv,
+      year_delta_by_prov: yearDeltaByProv,
+      has_year_baseline: !!yearBase,
+      has_month_baseline: !!monthBase,
+      year_base_date: yearBase ? yearBase.date : null,
+      month_base_date: monthBase ? monthBase.date : null,
+      city_latest: cityLatest,
+    },
   };
   fs.writeFileSync(OUT, JSON.stringify(out, null, 2), 'utf-8');
   console.log(`province_dashboard.json generated (${history.length} days)`);

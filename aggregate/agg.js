@@ -21,6 +21,9 @@ const METRICS = [
   { key: 'public_charger_num', label: '公共充电桩数', short: '公共充电桩', color: '#00ACC1', unit: '' },
 ];
 
+// 用于"本月/本年新增换电站"计算的指标 key
+const PERIOD_METRIC = 'swap_station_num_for_com';
+
 function isoWeek(dateStr) {
   const d = new Date(dateStr + 'T00:00:00Z');
   // 用 UTC 避免时区偏移
@@ -118,6 +121,46 @@ function buildYearly(records) {
   return { buckets, series: sb.series, count: buckets.length };
 }
 
+// 计算"本月新增"和"本年新增"：当前累计 - 周期起点之前的最后一条记录的累计
+function computePeriod(records, latest, metricKey) {
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = today.getMonth(); // 0-indexed
+  const yearStartStr = `${y}-01-01`;
+  const monthStartStr = `${y}-${String(m + 1).padStart(2, '0')}-01`;
+
+  function findBaselineBefore(dateStr) {
+    // 严格小于 dateStr 的最后一条记录
+    let base = null;
+    for (const r of records) {
+      if (r.date < dateStr) base = r;
+      else break;
+    }
+    return base;
+  }
+  const yearBase = findBaselineBefore(yearStartStr);
+  const monthBase = findBaselineBefore(monthStartStr);
+  const curVal = Number(latest[metricKey]) || 0;
+
+  function delta(base) {
+    if (!base) return { value: curVal, baseline_date: null, baseline_value: null, has_baseline: false };
+    const baseVal = Number(base[metricKey]) || 0;
+    return {
+      value: Math.max(0, curVal - baseVal),
+      baseline_date: base.date,
+      baseline_value: baseVal,
+      has_baseline: true,
+    };
+  }
+
+  return {
+    year_start: yearStartStr,
+    month_start: monthStartStr,
+    year_delta: delta(yearBase),
+    month_delta: delta(monthBase),
+  };
+}
+
 function main() {
   if (!fs.existsSync(HIST)) {
     console.error('[ERROR] history.json not found. Run scraper first.');
@@ -174,6 +217,9 @@ function main() {
       yearly_count: yearly.count,
       first_date: records[0].date,
     },
+    // 本期新增（"本月新增换电站" / "本年新增换电站"）
+    // 基线 = 严格 < 周期起点的最后一条记录的累计换电站数
+    period: computePeriod(records, latest, PERIOD_METRIC),
   };
 
   fs.writeFileSync(OUT, JSON.stringify(dashboard, null, 2), 'utf-8');

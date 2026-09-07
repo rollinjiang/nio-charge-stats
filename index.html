@@ -37,7 +37,7 @@ body { background:var(--bg); color:var(--text); transition:background .3s,color 
 .src-tag { display:inline-block; font-size:11px; font-weight:600; padding:2px 7px; border-radius:6px; background:var(--chip); color:var(--muted); margin-left:6px; vertical-align:middle; }
 
 .wrap { max-width:1240px; margin:0 auto; padding:20px; }
-.kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:18px; }
+.kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:18px; }
 .kpi { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
 .kpi::before { content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--c,#E60012); }
 .kpi-label { font-size:13px; color:var(--muted); font-weight:600; }
@@ -109,8 +109,10 @@ html[data-theme="dark"] .delta.up{color:#FF6B6B;} html[data-theme="dark"] .delta
   <div class="note">
     <b>数据说明</b> · 数据自动抓取自蔚来官网充电地图（<code>charger-map</code>）公开接口，无需登录。<br>
     · <b>蔚来能源充换电站总数</b>（<code>power_swap_charge_device_num_total</code>）= 换电站数量 + 充电站数量。<br>
-    · <b>蔚来能源充电站数量</b>（<code>power_charge_station_device_num_total</code>）为充电站<b>座数</b>；已验证：换电站 4,070 + 充电站 5,252 = 9,322，与充换电站总数完全吻合。<br>
+    · <b>蔚来能源充电站数量</b>（<code>power_charge_station_device_num_total</code>）为充电站<b>座数</b>；已验证：换电站 4,071 + 充电站 5,252 = 9,323，与充换电站总数完全吻合。<br>
     · 「高速公路换电站」对应城际高速换电站（<code>intercity_swap_station_num</code>）。<br>
+    · <b>本月新增换电站</b> = 当前累计换电站 − 本月 1 日之前的最后一条记录累计；首次统计（本月无基线）显示为当前累计。<br>
+    · <b>本年新增换电站</b> = 当前累计换电站 − 本年 1 月 1 日之前的最后一条记录累计；首次统计（本年无基线）显示为当前累计。<br>
     · 更新频率：<b>每天</b>。趋势图随每日积累自动增长。指标为<b>累计值</b>。
   </div>
 </div>
@@ -211,8 +213,17 @@ function buildKpis(){
     {key:'swap_station_num_for_com'},
     {key:'intercity_swap_station_num'},
   ];
+  // 本期新增（本月/本年新增换电站）
+  const period = dashboard.period || {};
+  const periodDefs = [
+    { key:'month_delta', label:'本月新增换电站', periodStart: period.month_start, color:'#FB8C00' },
+    { key:'year_delta',  label:'本年新增换电站', periodStart: period.year_start,  color:'#8E24AA' },
+  ];
+
   const grid = document.getElementById('kpiGrid');
   grid.innerHTML = '';
+
+  // 累计指标 4 张
   for(const d of defs){
     const m = latest[d.key] || {};
     const color = METRIC_DEF[d.key].color;
@@ -237,6 +248,23 @@ function buildKpis(){
       <div class="kpi-label">${m.label||METRIC_DEF[d.key].label} ${badge}</div>
       <div class="kpi-value">${fmtFull(showVal)}</div>
       <div class="kpi-foot">${deltaHtml}</div>`;
+    grid.appendChild(card);
+  }
+
+  // 本期新增 2 张
+  for(const pd of periodDefs){
+    const data = period[pd.key] || { value:0, has_baseline:false };
+    const card = document.createElement('div');
+    card.className='kpi'; card.style.setProperty('--c', pd.color);
+    // 起点标签：例如 "2026-09-01 起"
+    const startLabel = pd.periodStart ? `${pd.periodStart} 起` : '—';
+    const note = data.has_baseline
+      ? `对比 ${data.baseline_date} · +${fmtFull(data.value)}`
+      : `首期统计 · 当前累计 ${fmtFull(data.value)}`;
+    card.innerHTML = `
+      <div class="kpi-label">${pd.label} <span style="opacity:.7;">📈</span></div>
+      <div class="kpi-value">+${fmtFull(data.value)}</div>
+      <div class="kpi-foot">${startLabel} · ${note}</div>`;
     grid.appendChild(card);
   }
 }

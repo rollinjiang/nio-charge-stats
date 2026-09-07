@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-07T11:22:36.753Z",
+  "generated_at": "2026-09-07T12:14:32.754Z",
   "latest_date": "2026-09-07",
   "total_days": 1,
   "metrics": [
@@ -50,7 +50,7 @@
     "power_swap_charge_device_num_total": {
       "label": "蔚来能源充换电站总数",
       "short": "充换电站总数",
-      "value": 9322,
+      "value": 9323,
       "delta": null,
       "delta_days": null,
       "prev_value": null
@@ -58,7 +58,7 @@
     "swap_station_num_for_com": {
       "label": "换电站数量",
       "short": "换电站",
-      "value": 4070,
+      "value": 4071,
       "delta": null,
       "delta_days": null,
       "prev_value": null
@@ -104,7 +104,7 @@
       "points": [
         {
           "x": "2026-09-07",
-          "y": 9322,
+          "y": 9323,
           "label": "2026-09-07"
         }
       ]
@@ -116,7 +116,7 @@
       "points": [
         {
           "x": "2026-09-07",
-          "y": 4070,
+          "y": 4071,
           "label": "2026-09-07"
         }
       ]
@@ -178,7 +178,7 @@
       "points": [
         {
           "x": "2026-W37",
-          "y": 9322,
+          "y": 9323,
           "label": "2026-W37"
         }
       ]
@@ -190,7 +190,7 @@
       "points": [
         {
           "x": "2026-W37",
-          "y": 4070,
+          "y": 4071,
           "label": "2026-W37"
         }
       ]
@@ -252,7 +252,7 @@
       "points": [
         {
           "x": "2026-09",
-          "y": 9322,
+          "y": 9323,
           "label": "2026-09"
         }
       ]
@@ -264,7 +264,7 @@
       "points": [
         {
           "x": "2026-09",
-          "y": 4070,
+          "y": 4071,
           "label": "2026-09"
         }
       ]
@@ -326,7 +326,7 @@
       "points": [
         {
           "x": "2026",
-          "y": 9322,
+          "y": 9323,
           "label": "2026"
         }
       ]
@@ -338,7 +338,7 @@
       "points": [
         {
           "x": "2026",
-          "y": 4070,
+          "y": 4071,
           "label": "2026"
         }
       ]
@@ -398,5 +398,21 @@
     "monthly_count": 1,
     "yearly_count": 1,
     "first_date": "2026-09-07"
+  },
+  "period": {
+    "year_start": "2026-01-01",
+    "month_start": "2026-09-01",
+    "year_delta": {
+      "value": 4071,
+      "baseline_date": null,
+      "baseline_value": null,
+      "has_baseline": false
+    },
+    "month_delta": {
+      "value": 4071,
+      "baseline_date": null,
+      "baseline_value": null,
+      "has_baseline": false
+    }
   }
 }

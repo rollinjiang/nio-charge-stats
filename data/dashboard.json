@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-09-07T12:36:36.709Z",
-  "latest_date": "2026-09-07",
-  "total_days": 1,
+  "generated_at": "2026-09-08T04:57:51.006Z",
+  "latest_date": "2026-09-08",
+  "total_days": 2,
   "metrics": [
     {
       "key": "power_swap_charge_device_num_total",
@@ -50,50 +50,50 @@
     "power_swap_charge_device_num_total": {
       "label": "蔚来能源充换电站总数",
       "short": "充换电站总数",
-      "value": 9323,
-      "delta": null,
-      "delta_days": null,
-      "prev_value": null
+      "value": 9328,
+      "delta": 5,
+      "delta_days": 1,
+      "prev_value": 9323
     },
     "swap_station_num_for_com": {
       "label": "换电站数量",
       "short": "换电站",
-      "value": 4071,
-      "delta": null,
-      "delta_days": null,
-      "prev_value": null
+      "value": 4075,
+      "delta": 4,
+      "delta_days": 1,
+      "prev_value": 4071
     },
     "intercity_swap_station_num": {
       "label": "高速公路换电站",
       "short": "高速换电站",
-      "value": 1053,
-      "delta": null,
-      "delta_days": null,
-      "prev_value": null
+      "value": 1057,
+      "delta": 4,
+      "delta_days": 1,
+      "prev_value": 1053
     },
     "power_charge_station_device_num_total": {
       "label": "蔚来能源充电站数量",
       "short": "充电站",
-      "value": 5252,
-      "delta": null,
-      "delta_days": null,
-      "prev_value": null
+      "value": 5253,
+      "delta": 1,
+      "delta_days": 1,
+      "prev_value": 5252
     },
     "power_charge_device_num_total": {
       "label": "充电设备总数",
       "short": "充电设备",
-      "value": 30280,
-      "delta": null,
-      "delta_days": null,
-      "prev_value": null
+      "value": 30284,
+      "delta": 4,
+      "delta_days": 1,
+      "prev_value": 30280
     },
     "public_charger_num": {
       "label": "公共充电桩数",
       "short": "公共充电桩",
-      "value": 1767192,
-      "delta": null,
-      "delta_days": null,
-      "prev_value": null
+      "value": 1766797,
+      "delta": -395,
+      "delta_days": 1,
+      "prev_value": 1767192
     }
   },
   "daily": {
@@ -106,6 +106,11 @@
           "x": "2026-09-07",
           "y": 9323,
           "label": "2026-09-07"
+        },
+        {
+          "x": "2026-09-08",
+          "y": 9328,
+          "label": "2026-09-08"
         }
       ]
     },
@@ -118,6 +123,11 @@
           "x": "2026-09-07",
           "y": 4071,
           "label": "2026-09-07"
+        },
+        {
+          "x": "2026-09-08",
+          "y": 4075,
+          "label": "2026-09-08"
         }
       ]
     },
@@ -130,6 +140,11 @@
           "x": "2026-09-07",
           "y": 1053,
           "label": "2026-09-07"
+        },
+        {
+          "x": "2026-09-08",
+          "y": 1057,
+          "label": "2026-09-08"
         }
       ]
     },
@@ -142,6 +157,11 @@
           "x": "2026-09-07",
           "y": 5252,
           "label": "2026-09-07"
+        },
+        {
+          "x": "2026-09-08",
+          "y": 5253,
+          "label": "2026-09-08"
         }
       ]
     },
@@ -154,6 +174,11 @@
           "x": "2026-09-07",
           "y": 30280,
           "label": "2026-09-07"
+        },
+        {
+          "x": "2026-09-08",
+          "y": 30284,
+          "label": "2026-09-08"
         }
       ]
     },
@@ -166,6 +191,11 @@
           "x": "2026-09-07",
           "y": 1767192,
           "label": "2026-09-07"
+        },
+        {
+          "x": "2026-09-08",
+          "y": 1766797,
+          "label": "2026-09-08"
         }
       ]
     }
@@ -178,7 +208,7 @@
       "points": [
         {
           "x": "2026-W37",
-          "y": 9323,
+          "y": 9328,
           "label": "2026-W37"
         }
       ]
@@ -190,7 +220,7 @@
       "points": [
         {
           "x": "2026-W37",
-          "y": 4071,
+          "y": 4075,
           "label": "2026-W37"
         }
       ]
@@ -202,7 +232,7 @@
       "points": [
         {
           "x": "2026-W37",
-          "y": 1053,
+          "y": 1057,
           "label": "2026-W37"
         }
       ]
@@ -214,7 +244,7 @@
       "points": [
         {
           "x": "2026-W37",
-          "y": 5252,
+          "y": 5253,
           "label": "2026-W37"
         }
       ]
@@ -226,7 +256,7 @@
       "points": [
         {
           "x": "2026-W37",
-          "y": 30280,
+          "y": 30284,
           "label": "2026-W37"
         }
       ]
@@ -238,7 +268,7 @@
       "points": [
         {
           "x": "2026-W37",
-          "y": 1767192,
+          "y": 1766797,
           "label": "2026-W37"
         }
       ]
@@ -252,7 +282,7 @@
       "points": [
         {
           "x": "2026-09",
-          "y": 9323,
+          "y": 9328,
           "label": "2026-09"
         }
       ]
@@ -264,7 +294,7 @@
       "points": [
         {
           "x": "2026-09",
-          "y": 4071,
+          "y": 4075,
           "label": "2026-09"
         }
       ]
@@ -276,7 +306,7 @@
       "points": [
         {
           "x": "2026-09",
-          "y": 1053,
+          "y": 1057,
           "label": "2026-09"
         }
       ]
@@ -288,7 +318,7 @@
       "points": [
         {
           "x": "2026-09",
-          "y": 5252,
+          "y": 5253,
           "label": "2026-09"
         }
       ]
@@ -300,7 +330,7 @@
       "points": [
         {
           "x": "2026-09",
-          "y": 30280,
+          "y": 30284,
           "label": "2026-09"
         }
       ]
@@ -312,7 +342,7 @@
       "points": [
         {
           "x": "2026-09",
-          "y": 1767192,
+          "y": 1766797,
           "label": "2026-09"
         }
       ]
@@ -326,7 +356,7 @@
       "points": [
         {
           "x": "2026",
-          "y": 9323,
+          "y": 9328,
           "label": "2026"
         }
       ]
@@ -338,7 +368,7 @@
       "points": [
         {
           "x": "2026",
-          "y": 4071,
+          "y": 4075,
           "label": "2026"
         }
       ]
@@ -350,7 +380,7 @@
       "points": [
         {
           "x": "2026",
-          "y": 1053,
+          "y": 1057,
           "label": "2026"
         }
       ]
@@ -362,7 +392,7 @@
       "points": [
         {
           "x": "2026",
-          "y": 5252,
+          "y": 5253,
           "label": "2026"
         }
       ]
@@ -374,7 +404,7 @@
       "points": [
         {
           "x": "2026",
-          "y": 30280,
+          "y": 30284,
           "label": "2026"
         }
       ]
@@ -386,14 +416,14 @@
       "points": [
         {
           "x": "2026",
-          "y": 1767192,
+          "y": 1766797,
           "label": "2026"
         }
       ]
     }
   },
   "meta": {
-    "daily_count": 1,
+    "daily_count": 2,
     "weekly_count": 1,
     "monthly_count": 1,
     "yearly_count": 1,
@@ -402,13 +432,13 @@
   "period": {
     "baseline_date": "2026-09-07",
     "month_delta": {
-      "value": 0,
+      "value": 4,
       "baseline_date": "2026-09-07",
       "baseline_value": 4071,
       "has_baseline": true
     },
     "year_delta": {
-      "value": 0,
+      "value": 4,
       "baseline_date": "2026-09-07",
       "baseline_value": 4071,
       "has_baseline": true

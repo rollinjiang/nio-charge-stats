@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-08T04:57:51.006Z",
+  "generated_at": "2026-09-08T09:38:32.875Z",
   "latest_date": "2026-09-08",
   "total_days": 2,
   "metrics": [
@@ -430,18 +430,21 @@
     "first_date": "2026-09-07"
   },
   "period": {
-    "baseline_date": "2026-09-07",
+    "month_baseline_date": "2026-09-07",
+    "year_baseline_date": "2025-12-31",
     "month_delta": {
       "value": 4,
       "baseline_date": "2026-09-07",
       "baseline_value": 4071,
-      "has_baseline": true
+      "has_baseline": true,
+      "baseline_source": "项目历史起点"
     },
     "year_delta": {
-      "value": 4,
-      "baseline_date": "2026-09-07",
-      "baseline_value": 4071,
-      "has_baseline": true
+      "value": 399,
+      "baseline_date": "2025-12-31",
+      "baseline_value": 3676,
+      "has_baseline": true,
+      "baseline_source": "蔚来官方公布数据（2025 年末换电站总数）"
     }
   }
 }

@@ -112,7 +112,7 @@ html[data-theme="dark"] .delta.up{color:#FF6B6B;} html[data-theme="dark"] .delta
     · <b>蔚来能源充电站数量</b>（<code>power_charge_station_device_num_total</code>）为充电站<b>座数</b>；已验证：换电站 4,071 + 充电站 5,252 = 9,323，与充换电站总数完全吻合。<br>
     · 「高速公路换电站」对应城际高速换电站（<code>intercity_swap_station_num</code>）。<br>
     · <b>本月新增换电站</b> = 当前累计换电站 − 项目历史起点 <b>2026-09-07</b> 的累计；9 月 7 日及之后每日 = 当日累计 − 2026-09-07 累计。<br>
-    · <b>本年新增换电站</b> = 当前累计换电站 − <b>2026-09-07</b> 累计（与本月新增共用同一基准日）。<br>
+    · <b>本年新增换电站</b> = 当前累计换电站 − <b>3,676</b>（<b>蔚来官方公布 2025-12-31 换电站总数</b>，作为本年固定基准值，与本地抓取历史无关）。<br>
     · 更新频率：<b>每天</b>。趋势图随每日积累自动增长。指标为<b>累计值</b>。
   </div>
 </div>
@@ -213,11 +213,15 @@ function buildKpis(){
     {key:'swap_station_num_for_com'},
     {key:'intercity_swap_station_num'},
   ];
-  // 本期新增（本月/本年新增换电站，基准日固定为 2026-09-07）
+  // 本期新增卡片定义
+  // - 本月新增换电站：基准日 = 项目历史起点 2026-09-07（来自本地抓取历史）
+  // - 本年新增换电站：基准日 = 2025-12-31，基准值 = 3,676（蔚来官方公布数据，与本地历史无关）
   const period = dashboard.period || {};
+  const monthData = period.month_delta || { value:0, has_baseline:false, baseline_date: period.month_baseline_date || '2026-09-07' };
+  const yearData  = period.year_delta  || { value:0, has_baseline:false, baseline_date: period.year_baseline_date  || '2025-12-31' };
   const periodDefs = [
-    { key:'month_delta', label:'本月新增换电站', periodStart: period.baseline_date || '2026-09-07', color:'#FB8C00' },
-    { key:'year_delta',  label:'本年新增换电站', periodStart: period.baseline_date || '2026-09-07', color:'#8E24AA' },
+    { key:'month', label:'本月新增换电站', data: monthData, periodStart: monthData.baseline_date || '2026-09-07', color:'#FB8C00' },
+    { key:'year',  label:'本年新增换电站', data: yearData,  periodStart: yearData.baseline_date  || '2025-12-31', color:'#8E24AA' },
   ];
 
   const grid = document.getElementById('kpiGrid');
@@ -251,18 +255,24 @@ function buildKpis(){
     grid.appendChild(card);
   }
 
-  // 本期新增 2 张（基准日固定为 2026-09-07）
+  // 本期新增 2 张
   for(const pd of periodDefs){
-    const data = period[pd.key] || { value:0, has_baseline:false };
+    const data = pd.data || { value:0, has_baseline:false };
     const card = document.createElement('div');
     card.className='kpi'; card.style.setProperty('--c', pd.color);
     const startLabel = `自 ${pd.periodStart} 起`;
-    const note = data.has_baseline
-      ? `对比 ${data.baseline_date} · +${fmtFull(data.value)}`
-      : `基准日未抓取`;
+    let note;
+    if (pd.key === 'year') {
+      // 本年新增：基准为蔚来官方 2025-12-31 数据（3,676 座）
+      note = `对比 ${data.baseline_date} · 蔚来官方：${fmtFull(data.baseline_value||0)} 座`;
+    } else if (data.has_baseline) {
+      note = `对比 ${data.baseline_date} · +${fmtFull(data.value)}`;
+    } else {
+      note = `基准日未抓取`;
+    }
     card.innerHTML = `
       <div class="kpi-label">${pd.label} <span style="opacity:.7;">📈</span></div>
-      <div class="kpi-value">+${fmtFull(data.value)}</div>
+      <div class="kpi-value">+${fmtFull(data.value||0)}</div>
       <div class="kpi-foot">${startLabel} · ${note}</div>`;
     grid.appendChild(card);
   }

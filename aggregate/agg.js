@@ -121,29 +121,48 @@ function buildYearly(records) {
   return { buckets, series: sb.series, count: buckets.length };
 }
 
-// 计算"本月新增"和"本年新增"：当前累计 − 项目历史起点（2026-09-07）的累计
-// 基准日固定为项目首次抓取日，三个本期指标（本月/本年新增）共享同一基准
+// 计算"本月新增"和"本年新增"：
+// - 本月新增：当前累计 − 项目历史起点（2026-09-07）的累计（首期可能为 0，逐步增长）
+// - 本年新增：当前累计 − 蔚来官方公布的 2025-12-31 换电站总数（3,676 座）
+//   数据来源：蔚来官方年报；用作"本年新增换电站"的固定基准值，不依赖本地抓取历史
 function computePeriod(records, latest, metricKey) {
-  const BASE_DATE = '2026-09-07';
-  // 基准记录：精确匹配 BASE_DATE 的当日记录
-  const base = records.find(r => r.date === BASE_DATE) || null;
+  const MONTH_BASE_DATE = '2026-09-07';
+  // 蔚来官方公布：2025-12-31 换电站总数 = 3,676 座
+  const YEAR_BASE_DATE = '2025-12-31';
+  const YEAR_BASE_VALUE = 3676;
+
   const curVal = Number(latest[metricKey]) || 0;
 
-  function delta(base) {
-    if (!base) return { value: 0, baseline_date: null, baseline_value: null, has_baseline: false };
-    const baseVal = Number(base[metricKey]) || 0;
-    return {
+  // 月度：基于本地历史抓取的基准日记录
+  const monthBase = records.find(r => r.date === MONTH_BASE_DATE) || null;
+  let monthDelta;
+  if (!monthBase) {
+    monthDelta = { value: 0, baseline_date: null, baseline_value: null, has_baseline: false, baseline_source: '项目历史起点' };
+  } else {
+    const baseVal = Number(monthBase[metricKey]) || 0;
+    monthDelta = {
       value: Math.max(0, curVal - baseVal),
-      baseline_date: base.date,
+      baseline_date: monthBase.date,
       baseline_value: baseVal,
       has_baseline: true,
+      baseline_source: '项目历史起点',
     };
   }
 
+  // 年度：固定基准值，不依赖本地历史（蔚来官方 2025 年末数据）
+  const yearDelta = {
+    value: Math.max(0, curVal - YEAR_BASE_VALUE),
+    baseline_date: YEAR_BASE_DATE,
+    baseline_value: YEAR_BASE_VALUE,
+    has_baseline: true,
+    baseline_source: '蔚来官方公布数据（2025 年末换电站总数）',
+  };
+
   return {
-    baseline_date: BASE_DATE,
-    month_delta: delta(base),
-    year_delta: delta(base),
+    month_baseline_date: MONTH_BASE_DATE,
+    year_baseline_date: YEAR_BASE_DATE,
+    month_delta: monthDelta,
+    year_delta: yearDelta,
   };
 }
 

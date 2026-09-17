@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-09-16T17:11:33.646Z",
-  "latest_date": "2026-09-16",
-  "total_days": 10,
+  "generated_at": "2026-09-17T05:05:33.650Z",
+  "latest_date": "2026-09-17",
+  "total_days": 11,
   "metrics": [
     {
       "key": "power_swap_charge_device_num_total",
@@ -51,17 +51,17 @@
       "label": "蔚来能源充换电站总数",
       "short": "充换电站总数",
       "value": 9364,
-      "delta": 2,
+      "delta": 0,
       "delta_days": 1,
-      "prev_value": 9362
+      "prev_value": 9364
     },
     "swap_station_num_for_com": {
       "label": "换电站数量",
       "short": "换电站",
       "value": 4089,
-      "delta": 1,
+      "delta": 0,
       "delta_days": 1,
-      "prev_value": 4088
+      "prev_value": 4089
     },
     "intercity_swap_station_num": {
       "label": "高速公路换电站",
@@ -75,25 +75,25 @@
       "label": "蔚来能源充电站数量",
       "short": "充电站",
       "value": 5275,
-      "delta": 1,
+      "delta": 0,
       "delta_days": 1,
-      "prev_value": 5274
+      "prev_value": 5275
     },
     "power_charge_device_num_total": {
       "label": "充电设备总数",
       "short": "充电设备",
       "value": 30389,
-      "delta": 7,
+      "delta": 0,
       "delta_days": 1,
-      "prev_value": 30382
+      "prev_value": 30389
     },
     "public_charger_num": {
       "label": "公共充电桩数",
       "short": "公共充电桩",
       "value": 1726167,
-      "delta": -124,
+      "delta": 0,
       "delta_days": 1,
-      "prev_value": 1726291
+      "prev_value": 1726167
     }
   },
   "daily": {
@@ -151,6 +151,11 @@
           "x": "2026-09-16",
           "y": 9364,
           "label": "2026-09-16"
+        },
+        {
+          "x": "2026-09-17",
+          "y": 9364,
+          "label": "2026-09-17"
         }
       ]
     },
@@ -208,6 +213,11 @@
           "x": "2026-09-16",
           "y": 4089,
           "label": "2026-09-16"
+        },
+        {
+          "x": "2026-09-17",
+          "y": 4089,
+          "label": "2026-09-17"
         }
       ]
     },
@@ -265,6 +275,11 @@
           "x": "2026-09-16",
           "y": 1056,
           "label": "2026-09-16"
+        },
+        {
+          "x": "2026-09-17",
+          "y": 1056,
+          "label": "2026-09-17"
         }
       ]
     },
@@ -322,6 +337,11 @@
           "x": "2026-09-16",
           "y": 5275,
           "label": "2026-09-16"
+        },
+        {
+          "x": "2026-09-17",
+          "y": 5275,
+          "label": "2026-09-17"
         }
       ]
     },
@@ -379,6 +399,11 @@
           "x": "2026-09-16",
           "y": 30389,
           "label": "2026-09-16"
+        },
+        {
+          "x": "2026-09-17",
+          "y": 30389,
+          "label": "2026-09-17"
         }
       ]
     },
@@ -436,6 +461,11 @@
           "x": "2026-09-16",
           "y": 1726167,
           "label": "2026-09-16"
+        },
+        {
+          "x": "2026-09-17",
+          "y": 1726167,
+          "label": "2026-09-17"
         }
       ]
     }
@@ -693,7 +723,7 @@
     }
   },
   "meta": {
-    "daily_count": 10,
+    "daily_count": 11,
     "weekly_count": 2,
     "monthly_count": 1,
     "yearly_count": 1,

@@ -1,6 +1,6 @@
 {
   "latest_date": "2026-09-17",
-  "generated_at": "2026-09-17T05:05:33.694Z",
+  "generated_at": "2026-09-17T17:11:24.805Z",
   "total_days": 11,
   "provinces": {
     "110000": "北京",
@@ -71,7 +71,7 @@
   "cities": {
     "440300": "深圳"
   },
-  "national_swap_station_total": 4089,
+  "national_swap_station_total": 4090,
   "latest": {
     "date": "2026-09-17",
     "values": {
@@ -108,7 +108,7 @@
       "650000": 9
     },
     "cities": {
-      "440300": 94
+      "440300": 93
     }
   },
   "daily": [
@@ -780,7 +780,7 @@
     "has_baseline": true,
     "base_date": "2026-09-07",
     "city_latest": {
-      "440300": 94
+      "440300": 93
     }
   }
 }

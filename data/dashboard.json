@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T17:20:46.660Z",
+  "generated_at": "2026-09-23T17:06:57.078Z",
   "latest_date": "2026-09-23",
   "total_days": 17,
   "metrics": [
@@ -930,6 +930,47 @@
           "label": "2026"
         }
       ]
+    }
+  },
+  "monthly_new": {
+    "labels": [
+      "2026-09"
+    ],
+    "series": {
+      "swap": {
+        "key": "swap_station_num_for_com",
+        "label": "每月新建换电站数量",
+        "color": "#1E88E5",
+        "points": [
+          {
+            "month": "2026-09",
+            "new_count": 38,
+            "end_value": 4109,
+            "baseline_value": 4071,
+            "baseline_date": "2026-09-07",
+            "is_complete": false,
+            "is_first_month": true,
+            "days": 17
+          }
+        ]
+      },
+      "charge": {
+        "key": "power_charge_station_device_num_total",
+        "label": "每月新建充电站数量",
+        "color": "#FB8C00",
+        "points": [
+          {
+            "month": "2026-09",
+            "new_count": 49,
+            "end_value": 5301,
+            "baseline_value": 5252,
+            "baseline_date": "2026-09-07",
+            "is_complete": false,
+            "is_first_month": true,
+            "days": 17
+          }
+        ]
+      }
     }
   },
   "meta": {

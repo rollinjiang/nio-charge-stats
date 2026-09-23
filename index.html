@@ -97,11 +97,11 @@ html[data-theme="dark"] .delta.up{color:#FF6B6B;} html[data-theme="dark"] .delta
 
   <div class="row">
     <div class="panel">
-      <div class="panel-head"><span class="panel-title">充换电站 · 规模趋势</span><span class="panel-hint" id="chart1Hint"></span></div>
+      <div class="panel-head"><span class="panel-title">每月新建换电站数量</span><span class="panel-hint" id="chart1Hint"></span></div>
       <div class="chart chart-lg" id="chartMain"></div>
     </div>
     <div class="panel">
-      <div class="panel-head"><span class="panel-title">换电站构成</span><span class="panel-hint">换电站 vs 高速换电站</span></div>
+      <div class="panel-head"><span class="panel-title">每月新建充电站数量</span><span class="panel-hint" id="chart2Hint"></span></div>
       <div class="chart chart-lg" id="chartSwap"></div>
     </div>
   </div>
@@ -113,7 +113,9 @@ html[data-theme="dark"] .delta.up{color:#FF6B6B;} html[data-theme="dark"] .delta
     · 「高速公路换电站」对应城际高速换电站（<code>intercity_swap_station_num</code>）。<br>
     · <b>本月新增换电站</b> = 当前累计换电站 − 项目历史起点 <b>2026-09-07</b> 的累计；9 月 7 日及之后每日 = 当日累计 − 2026-09-07 累计。<br>
     · <b>本年新增换电站</b> = 当前累计换电站 − <b>3,676</b>（<b>蔚来官方公布 2025-12-31 换电站总数</b>，作为本年固定基准值，与本地抓取历史无关）。<br>
-    · 更新频率：<b>每天</b>。趋势图随每日积累自动增长。指标为<b>累计值</b>。
+    · <b>每月新建数量</b>（如下两图）：每月新增 = 该月末累计 − 基线累计；<b>首月（2026-09）基线为 9 月 7 日首次抓取值</b>（换电站 4,071 / 充电站 5,252），<b>次月起基线为上月末累计</b>。当月未结束前数值持续滚动更新，跨月后自动锁定并计入下月基线。<br>
+    · 月度数据固化保存于 <code>data/monthly_new.json</code>，即使每日历史被清理也不会丢失。柱状图上悬停可查看当期明细。<br>
+    · 更新频率：<b>每天 2 次</b>（北京时间 08:30 / 20:30）。趋势图随每日积累自动增长。指标为<b>累计值</b>。
   </div>
 </div>
 
@@ -278,27 +280,92 @@ function buildKpis(){
   }
 }
 
+// ---------- 每月新建数量（柱状图）----------
+// 读取 dashboard.monthly_new.series[metricKey].points
+// 每个 point: { month, new_count, end_value, baseline_value, baseline_date, is_complete, is_first_month, days }
+function monthlyData(metricKey){
+  const mn = dashboard && dashboard.monthly_new;
+  if (!mn || !mn.series || !mn.series[metricKey]) return null;
+  return mn.series[metricKey];
+}
+
+function buildMonthlyBarOption(metricKey, color){
+  const s = monthlyData(metricKey);
+  const center = accentColor();
+  if (!s || !s.points || !s.points.length) {
+    return {
+      title:{ text:'暂无月度数据', left:'center', top:'middle',
+              textStyle:{ color:center[4], fontSize:14, fontWeight:'normal' } },
+    };
+  }
+  const pts = s.points;
+  // X 轴：把 2026-09 显示为「26年9月」，更紧凑直观
+  const labels = pts.map(p => {
+    const [y, m] = p.month.split('-');
+    return `${y.slice(2)}年${Number(m)}月`;
+  });
+  const values = pts.map(p => Number(p.new_count) || 0);
+
+  return {
+    grid:{ top:50, left:70, right:30, bottom:50 },
+    tooltip:{
+      trigger:'axis',
+      formatter: params => {
+        const i = params[0].dataIndex;
+        const p = pts[i];
+        const done = p.is_complete ? '已完结' : '进行中';
+        const tip = p.is_first_month
+          ? `首月自 ${p.baseline_date} 起统计`
+          : `对比上月末`;
+        return `<b>${p.month}</b>（${done}）<br>`+
+               `当月新增：<b style="color:${color}">${p.new_count}</b> 座<br>`+
+               `<span style="opacity:.7">期间 ${p.baseline_value} → ${p.end_value}</span><br>`+
+               `<span style="opacity:.7">${tip} · 累计 ${p.days} 天</span>`;
+      },
+    },
+    xAxis:{
+      type:'category', data:labels,
+      axisLabel:{ color:center[4] },
+      axisLine:{ lineStyle:{ color:center[2] } },
+      name:'月份', nameLocation:'end', nameGap:8, nameTextStyle:{ color:center[4], fontSize:11 },
+    },
+    yAxis:{
+      type:'value', min:0,
+      axisLabel:{ color:center[4] },
+      splitLine:{ lineStyle:{ color:center[5] } },
+      name:'座', nameTextStyle:{ color:center[4], fontSize:11 },
+    },
+    series:[{
+      name:'当月新增',
+      type:'bar',
+      data:values,
+      barMaxWidth:70,
+      itemStyle:{ color, borderRadius:[5,5,0,0] },
+      label:{
+        show:true, position:'top', color:center[4], fontWeight:700, fontSize:12,
+        formatter: p => p.value,
+      },
+      // 未完结的月份用半透明区分
+      emphasis:{ itemStyle:{ opacity:0.85 } },
+    }],
+  };
+}
+
 function renderMain(){
   const el = document.getElementById('chartMain');
   if(!charts.main) charts.main = echarts.init(el);
-  const series = getSeries(dashboard);
-  const center = accentColor();
-  const show = series.filter(s=>s.points.length);
-  const chart = show.length ? show.slice(0,3) : [];
-  const option = {
-    grid:{top:50,left:70,right:30,bottom:50},
-    tooltip:{trigger:'axis', valueFormatter:v=>v==null?'—':Number(v).toLocaleString('zh-CN')},
-    legend:{top:6, textStyle:{color:center[3]}},
-    xAxis:{type:'category', data:xAxisLabels(chart), axisLabel:{color:center[4]}, axisLine:{lineStyle:{color:center[2]}}},
-    yAxis:{type:'value', scale:true, axisLabel:{color:center[4], formatter:v=>fmt(+v)}, splitLine:{lineStyle:{color:center[5]}}},
-    series: chart.map(s=>({
-      name:s.name, type:'line', smooth:true, symbolSize:10, showSymbol:true, data:s.points.map(p=>p.y),
-      lineStyle:{width:3, color:s.color}, itemStyle:{color:s.color},
-      areaStyle:{color: chartArt(s.color)},
-      label:{show: s.points.length<=3, formatter:p=>Number(p.value).toLocaleString('zh-CN'), color:'#6b7686', position:'top'},
-    })),
-  };
+  const option = buildMonthlyBarOption('swap', '#1E88E5');
   charts.main.setOption(option, true);
+  const s = monthlyData('swap');
+  const hint = document.getElementById('chart1Hint');
+  if (hint) {
+    if (s && s.points.length) {
+      const latest = s.points[s.points.length-1];
+      hint.textContent = latest.is_complete
+        ? `已累计 ${s.points.length} 个月`
+        : `${latest.month} 进行中 · 已 ${latest.days} 天`;
+    } else hint.textContent = '';
+  }
 }
 
 function chartArt(hex){
@@ -311,27 +378,18 @@ function chartArt(hex){
 function renderSwap(){
   const el = document.getElementById('chartSwap');
   if(!charts.swap) charts.swap = echarts.init(el);
-  const series = getSeries(dashboard);
-  const swap = series.find(s=>s.name.includes('换电站数量')) || series.find(s=>s.name.includes('换电站'));
-  const hs = series.find(s=>s.name.includes('高速公路')||s.name.includes('高速'));
-  if(!swap){ charts.swap.clear(); return; }
-  const xdata = swap.points.map(p=>p.x);
-  const swapVals = swap.points.map(p=>p.y);
-  const hsVals = (hs?hs.points:[]).map(p=>p.y);
-  while(hsVals.length<swapVals.length) hsVals.unshift(null);
-  const center = accentColor();
-  const option = {
-    grid:{top:50,left:70,right:30,bottom:50},
-    tooltip:{trigger:'axis', valueFormatter:v=>v==null?'—':Number(v).toLocaleString('zh-CN')},
-    legend:{top:6, textStyle:{color:center[3]}},
-    xAxis:{type:'category', data:xdata, axisLabel:{color:center[4]}, axisLine:{lineStyle:{color:center[2]}}},
-    yAxis:{type:'value', scale:true, axisLabel:{color:center[4], formatter:v=>fmt(+v)}, splitLine:{lineStyle:{color:center[5]}}},
-    series:[
-      {name:'换电站数量', type:'bar', data:swapVals, itemStyle:{color:'#1E88E5',borderRadius:[4,4,0,0]}, barMaxWidth:26, label:{show:swapVals.length<=6&&xdata.length>0, formatter:p=>Number(p.value).toLocaleString('zh-CN'), color:'#6b7686', position:'top'}},
-      {name:'高速公路换电站', type:'line', smooth:true, data:hsVals, itemStyle:{color:'#43A047'}, lineStyle:{width:3,color:'#43A047'}, symbolSize:9, showSymbol:true, label:{show:swapVals.length<=6&&xdata.length>0, formatter:p=>Number(p.value).toLocaleString('zh-CN'), color:'#6b7686', position:'top'}},
-    ],
-  };
+  const option = buildMonthlyBarOption('charge', '#FB8C00');
   charts.swap.setOption(option, true);
+  const s = monthlyData('charge');
+  const hint = document.getElementById('chart2Hint');
+  if (hint) {
+    if (s && s.points.length) {
+      const latest = s.points[s.points.length-1];
+      hint.textContent = latest.is_complete
+        ? `已累计 ${s.points.length} 个月`
+        : `${latest.month} 进行中 · 已 ${latest.days} 天`;
+    } else hint.textContent = '';
+  }
 }
 
 function renderAll(){

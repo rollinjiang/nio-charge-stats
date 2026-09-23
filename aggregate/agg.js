@@ -166,6 +166,133 @@ function computePeriod(records, latest, metricKey) {
   };
 }
 
+// ============================================================
+// 每月新建数量（换电站 / 充电站）
+// 规则：
+//   每月新增 = 该月最后一条记录累计 − 基线累计
+//   基线取值：
+//     · 首个月份 → 该月第一条记录（项目起点，2026-09-07）
+//     · 后续月份 → 上一个月的最后一条记录（即上月末累计）
+// 持久化：结果写入 data/monthly_new.json 累积保存。
+//   每次重算后与旧快照合并 —— 旧快照中已存在的月份若当前 history
+//   无法再算出来（例如历史被清理），仍予保留，保证月度数据不丢。
+// ============================================================
+const MONTHLY_SNAPSHOT = path.join(DATA_DIR, 'monthly_new.json');
+
+// 需要统计月度新增的两个指标
+const MONTHLY_METRICS = [
+  { key: 'swap_station_num_for_com',            metric: 'swap',  label: '每月新建换电站数量', color: '#1E88E5' },
+  { key: 'power_charge_station_device_num_total', metric: 'charge', label: '每月新建充电站数量', color: '#FB8C00' },
+];
+
+// 把记录按月份分组，返回 Map<YYYY-MM, records[]>（records 已按日期升序）
+function groupByMonth(records) {
+  const map = new Map();
+  for (const r of records) {
+    const m = monthKey(r.date);
+    if (!map.has(m)) map.set(m, []);
+    map.get(m).push(r);
+  }
+  for (const arr of map.values()) arr.sort((a, b) => a.date.localeCompare(b.date));
+  return map;
+}
+
+function computeMonthlyNew(records) {
+  const byMonth = groupByMonth(records);
+  const months = Array.from(byMonth.keys()).sort(); // 升序，如 ['2026-09','2026-10']
+
+  // 先读取旧快照，作为历史保护基线
+  let snapshot = { months: {} };
+  if (fs.existsSync(MONTHLY_SNAPSHOT)) {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(MONTHLY_SNAPSHOT, 'utf-8'));
+      if (parsed && typeof parsed.months === 'object') snapshot = parsed;
+    } catch (_) { /* 损坏则忽略，重新生成 */ }
+  }
+
+  // 用当前 history 重算每个可得月份
+  const computed = {};
+  let prevMonthEnd = null; // 上月末的各指标值，用于作为本月基线
+
+  for (const m of months) {
+    const recs = byMonth.get(m);
+    const first = recs[0];
+    const last = recs[recs.length - 1];
+
+    // 基线：优先用上月末；若没有上个月（即首月），用本月第一条记录
+    const baseSource = prevMonthEnd ? prevMonthEnd.record : first;
+    const isFirstMonth = !prevMonthEnd;
+
+    const entry = {
+      month: m,
+      start_date: first.date,
+      end_date: last.date,
+      days: recs.length,
+      is_complete: false, // 稍后统一修正
+    };
+    for (const mm of MONTHLY_METRICS) {
+      const endVal = Number(last[mm.key]) || 0;
+      const baseVal = Number(baseSource[mm.key]) || 0;
+      entry[mm.metric] = {
+        baseline_date: baseSource.date,
+        baseline_value: baseVal,
+        end_value: endVal,
+        new_count: Math.max(0, endVal - baseVal),
+        is_first_month: isFirstMonth,
+      };
+    }
+    computed[m] = entry;
+    prevMonthEnd = { month: m, record: last };
+  }
+
+  // 合并：以 computed 为准，但保留快照里已完结、当前算不出来的月份
+  const merged = Object.assign({}, snapshot.months);
+  for (const m of Object.keys(computed)) {
+    merged[m] = Object.assign({}, merged[m] || {}, computed[m]);
+  }
+
+  // 标记完结状态：只要存在比它更晚且有数据的月份，说明该月已结束，数值锁定
+  const keys = Object.keys(merged).sort();
+  const lastKey = keys[keys.length - 1];
+  for (const k of keys) {
+    merged[k].is_complete = k !== lastKey;
+  }
+
+  // 输出给前端的有序数组
+  const toArray = metric => keys.map(k => {
+    const e = merged[k];
+    const d = e[metric] || {};
+    return {
+      month: k,
+      new_count: Number(d.new_count) || 0,
+      end_value: Number(d.end_value) || 0,
+      baseline_value: Number(d.baseline_value) || 0,
+      baseline_date: d.baseline_date || null,
+      is_complete: !!e.is_complete,
+      is_first_month: !!d.is_first_month,
+      days: Number(e.days) || 0,
+    };
+  });
+
+  const out = {
+    generated_at: new Date().toISOString(),
+    months: merged,
+  };
+  fs.writeFileSync(MONTHLY_SNAPSHOT, JSON.stringify(out, null, 2), 'utf-8');
+
+  // 供 dashboard.json 使用
+  const result = {
+    labels: keys,
+    series: {},
+  };
+  for (const mm of MONTHLY_METRICS) {
+    result.series[mm.metric] = {
+      key: mm.key, label: mm.label, color: mm.color, points: toArray(mm.metric),
+    };
+  }
+  return result;
+}
+
 function main() {
   if (!fs.existsSync(HIST)) {
     console.error('[ERROR] history.json not found. Run scraper first.');
@@ -215,6 +342,8 @@ function main() {
     weekly: weekly.series,
     monthly: monthly.series,
     yearly: yearly.series,
+    // 每月新建数量（换电站 / 充电站）—— 柱状图数据源
+    monthly_new: computeMonthlyNew(records),
     meta: {
       daily_count: daily.count,
       weekly_count: weekly.count,

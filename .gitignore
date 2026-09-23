@@ -11,6 +11,9 @@ node_modules/
 # WorkBuddy 内部数据
 .workbuddy/
 
+# WorkBuddy 应用发布标记文件（本地生成，无需入库）
+.wbapp_*.genie
+
 # 原始抓取数据（仓库里只保留聚合后的 history.json / dashboard.json）
 data/latest_raw.json
 data/latest_parsed.json

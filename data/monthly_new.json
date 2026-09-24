@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-24T05:08:05.872Z",
+  "generated_at": "2026-09-24T17:25:49.102Z",
   "months": {
     "2026-09": {
       "month": "2026-09",
@@ -10,8 +10,8 @@
       "swap": {
         "baseline_date": "2026-09-07",
         "baseline_value": 4071,
-        "end_value": 4109,
-        "new_count": 38,
+        "end_value": 4117,
+        "new_count": 46,
         "is_first_month": true
       },
       "charge": {

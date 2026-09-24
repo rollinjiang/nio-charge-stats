@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-09-23T17:31:05.780Z",
-  "latest_date": "2026-09-23",
-  "total_days": 17,
+  "generated_at": "2026-09-24T05:08:05.871Z",
+  "latest_date": "2026-09-24",
+  "total_days": 18,
   "metrics": [
     {
       "key": "power_swap_charge_device_num_total",
@@ -50,50 +50,50 @@
     "power_swap_charge_device_num_total": {
       "label": "蔚来能源充换电站总数",
       "short": "充换电站总数",
-      "value": 9410,
-      "delta": 9,
+      "value": 9411,
+      "delta": 1,
       "delta_days": 1,
-      "prev_value": 9401
+      "prev_value": 9410
     },
     "swap_station_num_for_com": {
       "label": "换电站数量",
       "short": "换电站",
       "value": 4109,
-      "delta": 6,
+      "delta": 0,
       "delta_days": 1,
-      "prev_value": 4103
+      "prev_value": 4109
     },
     "intercity_swap_station_num": {
       "label": "高速公路换电站",
       "short": "高速换电站",
       "value": 1059,
-      "delta": 1,
+      "delta": 0,
       "delta_days": 1,
-      "prev_value": 1058
+      "prev_value": 1059
     },
     "power_charge_station_device_num_total": {
       "label": "蔚来能源充电站数量",
       "short": "充电站",
-      "value": 5301,
-      "delta": 3,
+      "value": 5302,
+      "delta": 1,
       "delta_days": 1,
-      "prev_value": 5298
+      "prev_value": 5301
     },
     "power_charge_device_num_total": {
       "label": "充电设备总数",
       "short": "充电设备",
-      "value": 30574,
-      "delta": 13,
+      "value": 30578,
+      "delta": 4,
       "delta_days": 1,
-      "prev_value": 30561
+      "prev_value": 30574
     },
     "public_charger_num": {
       "label": "公共充电桩数",
       "short": "公共充电桩",
-      "value": 1735196,
-      "delta": 570,
+      "value": 1736057,
+      "delta": 861,
       "delta_days": 1,
-      "prev_value": 1734626
+      "prev_value": 1735196
     }
   },
   "daily": {
@@ -186,6 +186,11 @@
           "x": "2026-09-23",
           "y": 9410,
           "label": "2026-09-23"
+        },
+        {
+          "x": "2026-09-24",
+          "y": 9411,
+          "label": "2026-09-24"
         }
       ]
     },
@@ -278,6 +283,11 @@
           "x": "2026-09-23",
           "y": 4109,
           "label": "2026-09-23"
+        },
+        {
+          "x": "2026-09-24",
+          "y": 4109,
+          "label": "2026-09-24"
         }
       ]
     },
@@ -370,6 +380,11 @@
           "x": "2026-09-23",
           "y": 1059,
           "label": "2026-09-23"
+        },
+        {
+          "x": "2026-09-24",
+          "y": 1059,
+          "label": "2026-09-24"
         }
       ]
     },
@@ -462,6 +477,11 @@
           "x": "2026-09-23",
           "y": 5301,
           "label": "2026-09-23"
+        },
+        {
+          "x": "2026-09-24",
+          "y": 5302,
+          "label": "2026-09-24"
         }
       ]
     },
@@ -554,6 +574,11 @@
           "x": "2026-09-23",
           "y": 30574,
           "label": "2026-09-23"
+        },
+        {
+          "x": "2026-09-24",
+          "y": 30578,
+          "label": "2026-09-24"
         }
       ]
     },
@@ -646,6 +671,11 @@
           "x": "2026-09-23",
           "y": 1735196,
           "label": "2026-09-23"
+        },
+        {
+          "x": "2026-09-24",
+          "y": 1736057,
+          "label": "2026-09-24"
         }
       ]
     }
@@ -668,7 +698,7 @@
         },
         {
           "x": "2026-W39",
-          "y": 9410,
+          "y": 9411,
           "label": "2026-W39"
         }
       ]
@@ -734,7 +764,7 @@
         },
         {
           "x": "2026-W39",
-          "y": 5301,
+          "y": 5302,
           "label": "2026-W39"
         }
       ]
@@ -756,7 +786,7 @@
         },
         {
           "x": "2026-W39",
-          "y": 30574,
+          "y": 30578,
           "label": "2026-W39"
         }
       ]
@@ -778,7 +808,7 @@
         },
         {
           "x": "2026-W39",
-          "y": 1735196,
+          "y": 1736057,
           "label": "2026-W39"
         }
       ]
@@ -792,7 +822,7 @@
       "points": [
         {
           "x": "2026-09",
-          "y": 9410,
+          "y": 9411,
           "label": "2026-09"
         }
       ]
@@ -828,7 +858,7 @@
       "points": [
         {
           "x": "2026-09",
-          "y": 5301,
+          "y": 5302,
           "label": "2026-09"
         }
       ]
@@ -840,7 +870,7 @@
       "points": [
         {
           "x": "2026-09",
-          "y": 30574,
+          "y": 30578,
           "label": "2026-09"
         }
       ]
@@ -852,7 +882,7 @@
       "points": [
         {
           "x": "2026-09",
-          "y": 1735196,
+          "y": 1736057,
           "label": "2026-09"
         }
       ]
@@ -866,7 +896,7 @@
       "points": [
         {
           "x": "2026",
-          "y": 9410,
+          "y": 9411,
           "label": "2026"
         }
       ]
@@ -902,7 +932,7 @@
       "points": [
         {
           "x": "2026",
-          "y": 5301,
+          "y": 5302,
           "label": "2026"
         }
       ]
@@ -914,7 +944,7 @@
       "points": [
         {
           "x": "2026",
-          "y": 30574,
+          "y": 30578,
           "label": "2026"
         }
       ]
@@ -926,7 +956,7 @@
       "points": [
         {
           "x": "2026",
-          "y": 1735196,
+          "y": 1736057,
           "label": "2026"
         }
       ]
@@ -950,7 +980,7 @@
             "baseline_date": "2026-09-07",
             "is_complete": false,
             "is_first_month": true,
-            "days": 17
+            "days": 18
           }
         ]
       },
@@ -961,20 +991,20 @@
         "points": [
           {
             "month": "2026-09",
-            "new_count": 49,
-            "end_value": 5301,
+            "new_count": 50,
+            "end_value": 5302,
             "baseline_value": 5252,
             "baseline_date": "2026-09-07",
             "is_complete": false,
             "is_first_month": true,
-            "days": 17
+            "days": 18
           }
         ]
       }
     }
   },
   "meta": {
-    "daily_count": 17,
+    "daily_count": 18,
     "weekly_count": 3,
     "monthly_count": 1,
     "yearly_count": 1,

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-26T05:15:53.928Z",
+  "generated_at": "2026-09-26T08:49:03.191Z",
   "latest_date": "2026-09-26",
   "total_days": 20,
   "metrics": [
@@ -1062,6 +1062,21 @@
         ]
       }
     }
+  },
+  "daily_new": {
+    "start_date": "2026-09-26",
+    "metric_key": "swap_station_num_for_com",
+    "label": "本月每日新增换电站数量",
+    "unit": "座",
+    "points": [
+      {
+        "date": "2026-09-26",
+        "new_count": 1,
+        "end_value": 4125,
+        "baseline_date": "2026-09-25",
+        "baseline_value": 4124
+      }
+    ]
   },
   "meta": {
     "daily_count": 20,

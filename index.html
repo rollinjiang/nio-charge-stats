@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NIO 充换电指标看板</title>
+<title>NIO 充换电指标看板 V2.0</title>
 <link rel="icon" href="data:,">
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <style>
@@ -114,7 +114,7 @@ html[data-theme="dark"] .live-tag { color:#7AC77A; }
     <div class="brand">
       <div class="logo">N</div>
       <div>
-        <div class="brand-title">NIO 充换电指标看板</div>
+        <div class="brand-title">NIO 充换电指标看板 V2.0</div>
         <div class="brand-sub" id="subtitle">数据源：蔚来官网充电地图</div>
       </div>
     </div>
@@ -153,6 +153,14 @@ html[data-theme="dark"] .live-tag { color:#7AC77A; }
     </div>
   </div>
 
+  <div class="panel" style="margin-bottom:18px;">
+    <div class="panel-head">
+      <span class="panel-title">本月每日新增换电站数量</span>
+      <span class="panel-hint" id="chartDayHint"></span>
+    </div>
+    <div class="chart chart-lg" id="chartDay"></div>
+  </div>
+
   <div class="note">
     <b>数据说明</b> · 数据抓取自蔚来官网充电地图（<code>charger-map</code>）公开接口，无需登录。<br>
     · <b>顶部「全国实时数据」区</b>（换电站总数 / 高速公路换电站数量 / 充电站数量）由<b>浏览器直连蔚来接口</b>获取，打开页面即为最新值，无需等待定时任务；<b>每 5 分钟自动刷新</b>，也可点右上角「🔄 刷新」手动拉取。若接口不可达，卡片自动回退到每日快照并标注。<br>
@@ -163,7 +171,8 @@ html[data-theme="dark"] .live-tag { color:#7AC77A; }
     · <b>本年新增换电站</b> = 当前累计换电站 − <b>3,676</b>（<b>蔚来官方公布 2025-12-31 换电站总数</b>，作为本年固定基准值，与本地抓取历史无关）。<br>
     · <b>每月新建数量</b>（如下两图）：每月新增 = 该月末累计 − 基线累计；<b>首月（2026-09）基线为 9 月 7 日首次抓取值</b>（换电站 4,071 / 充电站 5,252），<b>次月起基线为上月末累计</b>。当月未结束前数值持续滚动更新，跨月后自动锁定并计入下月基线。<br>
     · 月度数据固化保存于 <code>data/monthly_new.json</code>，即使每日历史被清理也不会丢失。柱状图上悬停可查看当期明细。<br>
-    · 更新频率：<b>每天 2 次</b>（北京时间 08:30 / 20:30）。趋势图随每日积累自动增长。指标为<b>累计值</b>。
+    · 更新频率：<b>每天 2 次</b>（北京时间 08:30 / 20:30）。趋势图随每日积累自动增长。指标为<b>累计值</b>。<br>
+    · <b>本月每日新增换电站数量</b>（上方独立柱状图）：以 <b>2026-09-26</b> 为起点按日历日展示，<b>当日新增 = 当日累计 − 前一日累计</b>，随每日抓取自动增长。
   </div>
 </div>
 
@@ -516,6 +525,70 @@ function renderSwap(){
   }
 }
 
+function buildDailyNewOption(){
+  const dn = dashboard && dashboard.daily_new;
+  const center = accentColor();
+  if(!dn || !dn.points || !dn.points.length){
+    return { title:{ text:`暂无数据（自 ${dn?dn.start_date:'—'} 起）`, left:'center', top:'middle',
+      textStyle:{ color:center[4], fontSize:14, fontWeight:'normal' } } };
+  }
+  const pts = dn.points;
+  // X 轴：2026-09-26 -> 9/26
+  const labels = pts.map(p => { const [y,m,d] = p.date.split('-'); return `${Number(m)}/${Number(d)}`; });
+  const values = pts.map(p => Number(p.new_count) || 0);
+  return {
+    grid:{ top:50, left:64, right:30, bottom:50 },
+    tooltip:{
+      trigger:'axis',
+      formatter: params => {
+        const i = params[0].dataIndex; const p = pts[i];
+        const line = p.baseline_date && p.baseline_date !== prevDayStr(p.date)
+          ? `<span style="opacity:.7">基线 ${p.baseline_date}（含历史缺口）</span>`
+          : (p.baseline_date ? `<span style="opacity:.7">基线 ${p.baseline_date}</span>` : '');
+        return `<b>${p.date}</b><br>当日新增换电站：<b style="color:#E60012">${p.new_count}</b> 座<br>`+
+               `<span style="opacity:.7">区间 ${p.baseline_value} → ${p.end_value}</span><br>${line}`;
+      },
+    },
+    xAxis:{
+      type:'category', data:labels, boundaryGap:true,
+      axisLabel:{ color:center[4] }, axisLine:{ lineStyle:{ color:center[2] } },
+      name:'日期', nameLocation:'end', nameGap:8, nameTextStyle:{ color:center[4], fontSize:11 },
+    },
+    yAxis:{
+      type:'value', min:0,
+      axisLabel:{ color:center[4] }, splitLine:{ lineStyle:{ color:center[5] } },
+      name:'座', nameTextStyle:{ color:center[4], fontSize:11 },
+    },
+    series:[{
+      name:'当日新增', type:'bar', data:values, barMaxWidth:54,
+      itemStyle:{ color:'#E60012', borderRadius:[5,5,0,0] },
+      label:{ show:true, position:'top', color:center[4], fontWeight:700, fontSize:12, formatter:p=>p.value },
+    }],
+  };
+}
+
+function prevDayStr(dateStr){
+  const d = new Date(dateStr + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() - 1);
+  return d.toISOString().slice(0, 10);
+}
+
+function renderDay(){
+  const el = document.getElementById('chartDay');
+  if(!charts.day) charts.day = echarts.init(el);
+  const option = buildDailyNewOption();
+  charts.day.setOption(option, true);
+  const dn = dashboard && dashboard.daily_new;
+  const hint = document.getElementById('chartDayHint');
+  if(hint){
+    if(dn && dn.points.length){
+      const latest = dn.points[dn.points.length - 1];
+      const gap = latest.baseline_date && latest.baseline_date !== prevDayStr(latest.date);
+      hint.textContent = `自 ${dn.start_date} 起 · 已统计 ${dn.points.length} 天` + (gap ? ' · 首柱含历史缺口' : '');
+    } else hint.textContent = '';
+  }
+}
+
 function renderAll(){
   const sub = dashboard ? `数据源：蔚来官网充电地图 · 最新 ${dashboard.latest_date} · 已积累 ${dashboard.total_days} 天` : '';
   document.getElementById('subtitle').textContent = sub;
@@ -524,9 +597,11 @@ function renderAll(){
   renderRealtime();   // 快照就绪后重算「较快照」对比
   renderMain();
   renderSwap();
+  renderDay();
   if (realtime) updateUpdatedNote();
   charts.main && charts.main.resize();
   charts.swap && charts.swap.resize();
+  charts.day && charts.day.resize();
 }
 
 function loadData(){

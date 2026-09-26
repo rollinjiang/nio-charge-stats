@@ -293,6 +293,56 @@ function computeMonthlyNew(records) {
   return result;
 }
 
+// ============================================================
+// 每日新增换电站数量（按日历日展示，从指定起点日开始）
+// 规则：
+//   每日新增 = 当日累计 − 前一日累计
+//     · 起点日之后：前一日 = history 中上一条记录（每天仅保留末次抓取）
+//     · 起点日当天：前一日 = history 中早于起点日的最近一条记录作为基线
+// 说明：history 每天 2 次抓取、同日覆盖，故每日仅一条记录。
+//   若起点日与基线日之间存在抓取缺口（某日无记录），则首根柱子会包含
+//   缺口天数的累计新增；后续日期相邻记录连续时即为单日新增。
+// ============================================================
+const DAILY_NEW_START = '2026-09-26';
+const DAILY_NEW_METRIC = 'swap_station_num_for_com';
+
+function computeDailyNew(records) {
+  const from = records.filter(r => r.date >= DAILY_NEW_START);
+  if (!from.length) {
+    return {
+      start_date: DAILY_NEW_START, metric_key: DAILY_NEW_METRIC,
+      label: '本月每日新增换电站数量', unit: '座', points: [],
+    };
+  }
+  const points = [];
+  for (let i = 0; i < from.length; i++) {
+    const cur = from[i];
+    const curVal = Number(cur[DAILY_NEW_METRIC]) || 0;
+    let base;
+    if (i > 0) {
+      base = from[i - 1];                       // 上一条记录（相邻日）
+    } else {
+      const earlier = records.filter(r => r.date < DAILY_NEW_START);
+      base = earlier.length ? earlier[earlier.length - 1] : null; // 起点日基线
+    }
+    const baseVal = base ? (Number(base[DAILY_NEW_METRIC]) || 0) : curVal;
+    points.push({
+      date: cur.date,
+      new_count: Math.max(0, curVal - baseVal),
+      end_value: curVal,
+      baseline_date: base ? base.date : null,
+      baseline_value: base ? baseVal : null,
+    });
+  }
+  return {
+    start_date: DAILY_NEW_START,
+    metric_key: DAILY_NEW_METRIC,
+    label: '本月每日新增换电站数量',
+    unit: '座',
+    points,
+  };
+}
+
 function main() {
   if (!fs.existsSync(HIST)) {
     console.error('[ERROR] history.json not found. Run scraper first.');
@@ -344,6 +394,8 @@ function main() {
     yearly: yearly.series,
     // 每月新建数量（换电站 / 充电站）—— 柱状图数据源
     monthly_new: computeMonthlyNew(records),
+    // 每日新增换电站数量（从 2026-09-26 起）—— 柱状图数据源
+    daily_new: computeDailyNew(records),
     meta: {
       daily_count: daily.count,
       weekly_count: weekly.count,

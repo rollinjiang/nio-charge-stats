@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-09-27T17:07:27.727Z",
+  "generated_at": "2026-09-28T05:41:26.459Z",
   "months": {
     "2026-09": {
       "month": "2026-09",
       "start_date": "2026-09-07",
-      "end_date": "2026-09-27",
-      "days": 21,
+      "end_date": "2026-09-28",
+      "days": 22,
       "is_complete": false,
       "swap": {
         "baseline_date": "2026-09-07",

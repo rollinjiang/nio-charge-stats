@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-09-30T18:03:29.791Z",
+  "generated_at": "2026-10-01T06:17:26.711Z",
   "months": {
     "2026-09": {
       "month": "2026-09",
       "start_date": "2026-09-07",
       "end_date": "2026-09-30",
       "days": 24,
-      "is_complete": false,
+      "is_complete": true,
       "swap": {
         "baseline_date": "2026-09-07",
         "baseline_value": 4071,
@@ -20,6 +20,27 @@
         "end_value": 5337,
         "new_count": 85,
         "is_first_month": true
+      }
+    },
+    "2026-10": {
+      "month": "2026-10",
+      "start_date": "2026-10-01",
+      "end_date": "2026-10-01",
+      "days": 1,
+      "is_complete": false,
+      "swap": {
+        "baseline_date": "2026-09-30",
+        "baseline_value": 4155,
+        "end_value": 4156,
+        "new_count": 1,
+        "is_first_month": false
+      },
+      "charge": {
+        "baseline_date": "2026-09-30",
+        "baseline_value": 5337,
+        "end_value": 5344,
+        "new_count": 7,
+        "is_first_month": false
       }
     }
   }

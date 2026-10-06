@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-06T06:39:04.538Z",
+  "generated_at": "2026-10-06T18:31:32.004Z",
   "latest_date": "2026-10-06",
   "total_days": 30,
   "metrics": [
@@ -50,16 +50,16 @@
     "power_swap_charge_device_num_total": {
       "label": "蔚来能源充换电站总数",
       "short": "充换电站总数",
-      "value": 9539,
-      "delta": 11,
+      "value": 9541,
+      "delta": 13,
       "delta_days": 1,
       "prev_value": 9528
     },
     "swap_station_num_for_com": {
       "label": "换电站数量",
       "short": "换电站",
-      "value": 4163,
-      "delta": 1,
+      "value": 4165,
+      "delta": 3,
       "delta_days": 1,
       "prev_value": 4162
     },
@@ -249,7 +249,7 @@
         },
         {
           "x": "2026-10-06",
-          "y": 9539,
+          "y": 9541,
           "label": "2026-10-06"
         }
       ]
@@ -406,7 +406,7 @@
         },
         {
           "x": "2026-10-06",
-          "y": 4163,
+          "y": 4165,
           "label": "2026-10-06"
         }
       ]
@@ -1068,7 +1068,7 @@
         },
         {
           "x": "2026-W41",
-          "y": 9539,
+          "y": 9541,
           "label": "2026-W41"
         }
       ]
@@ -1100,7 +1100,7 @@
         },
         {
           "x": "2026-W41",
-          "y": 4163,
+          "y": 4165,
           "label": "2026-W41"
         }
       ]
@@ -1247,7 +1247,7 @@
         },
         {
           "x": "2026-10",
-          "y": 9539,
+          "y": 9541,
           "label": "2026-10"
         }
       ]
@@ -1264,7 +1264,7 @@
         },
         {
           "x": "2026-10",
-          "y": 4163,
+          "y": 4165,
           "label": "2026-10"
         }
       ]
@@ -1346,7 +1346,7 @@
       "points": [
         {
           "x": "2026",
-          "y": 9539,
+          "y": 9541,
           "label": "2026"
         }
       ]
@@ -1358,7 +1358,7 @@
       "points": [
         {
           "x": "2026",
-          "y": 4163,
+          "y": 4165,
           "label": "2026"
         }
       ]
@@ -1435,8 +1435,8 @@
           },
           {
             "month": "2026-10",
-            "new_count": 8,
-            "end_value": 4163,
+            "new_count": 10,
+            "end_value": 4165,
             "baseline_value": 4155,
             "baseline_date": "2026-09-30",
             "is_complete": false,
@@ -1552,8 +1552,8 @@
       },
       {
         "date": "2026-10-06",
-        "new_count": 1,
-        "end_value": 4163,
+        "new_count": 3,
+        "end_value": 4165,
         "baseline_date": "2026-10-05",
         "baseline_value": 4162
       }
@@ -1570,14 +1570,14 @@
     "month_baseline_date": "2026-09-07",
     "year_baseline_date": "2025-12-31",
     "month_delta": {
-      "value": 92,
+      "value": 94,
       "baseline_date": "2026-09-07",
       "baseline_value": 4071,
       "has_baseline": true,
       "baseline_source": "项目历史起点"
     },
     "year_delta": {
-      "value": 487,
+      "value": 489,
       "baseline_date": "2025-12-31",
       "baseline_value": 3676,
       "has_baseline": true,

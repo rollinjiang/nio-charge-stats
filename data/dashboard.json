@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-10-06T18:31:32.004Z",
-  "latest_date": "2026-10-06",
-  "total_days": 30,
+  "generated_at": "2026-10-07T06:16:08.234Z",
+  "latest_date": "2026-10-07",
+  "total_days": 31,
   "metrics": [
     {
       "key": "power_swap_charge_device_num_total",
@@ -51,17 +51,17 @@
       "label": "蔚来能源充换电站总数",
       "short": "充换电站总数",
       "value": 9541,
-      "delta": 13,
+      "delta": 0,
       "delta_days": 1,
-      "prev_value": 9528
+      "prev_value": 9541
     },
     "swap_station_num_for_com": {
       "label": "换电站数量",
       "short": "换电站",
       "value": 4165,
-      "delta": 3,
+      "delta": 0,
       "delta_days": 1,
-      "prev_value": 4162
+      "prev_value": 4165
     },
     "intercity_swap_station_num": {
       "label": "高速公路换电站",
@@ -75,25 +75,25 @@
       "label": "蔚来能源充电站数量",
       "short": "充电站",
       "value": 5376,
-      "delta": 10,
+      "delta": 0,
       "delta_days": 1,
-      "prev_value": 5366
+      "prev_value": 5376
     },
     "power_charge_device_num_total": {
       "label": "充电设备总数",
       "short": "充电设备",
       "value": 31005,
-      "delta": 83,
+      "delta": 0,
       "delta_days": 1,
-      "prev_value": 30922
+      "prev_value": 31005
     },
     "public_charger_num": {
       "label": "公共充电桩数",
       "short": "公共充电桩",
       "value": 1772345,
-      "delta": 116,
+      "delta": 0,
       "delta_days": 1,
-      "prev_value": 1772229
+      "prev_value": 1772345
     }
   },
   "daily": {
@@ -251,6 +251,11 @@
           "x": "2026-10-06",
           "y": 9541,
           "label": "2026-10-06"
+        },
+        {
+          "x": "2026-10-07",
+          "y": 9541,
+          "label": "2026-10-07"
         }
       ]
     },
@@ -408,6 +413,11 @@
           "x": "2026-10-06",
           "y": 4165,
           "label": "2026-10-06"
+        },
+        {
+          "x": "2026-10-07",
+          "y": 4165,
+          "label": "2026-10-07"
         }
       ]
     },
@@ -565,6 +575,11 @@
           "x": "2026-10-06",
           "y": 1072,
           "label": "2026-10-06"
+        },
+        {
+          "x": "2026-10-07",
+          "y": 1072,
+          "label": "2026-10-07"
         }
       ]
     },
@@ -722,6 +737,11 @@
           "x": "2026-10-06",
           "y": 5376,
           "label": "2026-10-06"
+        },
+        {
+          "x": "2026-10-07",
+          "y": 5376,
+          "label": "2026-10-07"
         }
       ]
     },
@@ -879,6 +899,11 @@
           "x": "2026-10-06",
           "y": 31005,
           "label": "2026-10-06"
+        },
+        {
+          "x": "2026-10-07",
+          "y": 31005,
+          "label": "2026-10-07"
         }
       ]
     },
@@ -1036,6 +1061,11 @@
           "x": "2026-10-06",
           "y": 1772345,
           "label": "2026-10-06"
+        },
+        {
+          "x": "2026-10-07",
+          "y": 1772345,
+          "label": "2026-10-07"
         }
       ]
     }
@@ -1441,7 +1471,7 @@
             "baseline_date": "2026-09-30",
             "is_complete": false,
             "is_first_month": false,
-            "days": 6
+            "days": 7
           }
         ]
       },
@@ -1468,7 +1498,7 @@
             "baseline_date": "2026-09-30",
             "is_complete": false,
             "is_first_month": false,
-            "days": 6
+            "days": 7
           }
         ]
       }
@@ -1556,11 +1586,18 @@
         "end_value": 4165,
         "baseline_date": "2026-10-05",
         "baseline_value": 4162
+      },
+      {
+        "date": "2026-10-07",
+        "new_count": 0,
+        "end_value": 4165,
+        "baseline_date": "2026-10-06",
+        "baseline_value": 4165
       }
     ]
   },
   "meta": {
-    "daily_count": 30,
+    "daily_count": 31,
     "weekly_count": 5,
     "monthly_count": 2,
     "yearly_count": 1,

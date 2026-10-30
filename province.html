@@ -171,7 +171,7 @@ function loadData(){
   DATA_SOURCES.forEach(src => {
     fetchSource(src, src.url.startsWith('http') ? 5000 : 4000)
       .then(({ data }) => {
-        if (!dashboard || (data.latest_date || '') > (dashboard.latest_date || '')) {
+        if (!dashboard || dataStamp(data) > dataStamp(dashboard)) {
           applyDashboard(src, data);
         }
       })
@@ -190,6 +190,11 @@ function fetchSource(src, timeoutMs){
     .then(data => { clearTimeout(timer); return { src, data }; })
     .catch(err => { clearTimeout(timer); throw err; });
 }
+// 数据新鲜度指纹：优先 generated_at（同一天的数据可能由不同脚本版本生成）
+function dataStamp(d){
+  return (d && (d.generated_at || d.latest_date)) || '';
+}
+
 function applyDashboard(src, data){
   dashboard = data;
   renderAll();

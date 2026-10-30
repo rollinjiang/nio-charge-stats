@@ -676,12 +676,13 @@ function renderAll(){
 }
 
 function loadData(){
-  // 所有源并发拉取，谁先到先用；后续若有「数据日期更新」的源到达，自动升级替换。
-  // 这样既能秒开（本地同源最快），又不会被某个镜像的缓存卡住。
+  // 所有源并发拉取，谁先到先用；后续若有「生成时间更新」的源到达，自动升级替换。
+  // 注意：不能只比 latest_date —— 同一天的数据可能由不同版本的脚本生成（口径不同），
+  // 必须用 generated_at 判断新旧，否则会选到缓存里的旧口径数据。
   DATA_SOURCES.forEach(src => {
     fetchSource(src, src.url.startsWith('http') ? 5000 : 4000)
       .then(({ data }) => {
-        if (!dashboard || (data.latest_date || '') > (dashboard.latest_date || '')) {
+        if (!dashboard || dataStamp(data) > dataStamp(dashboard)) {
           applyDashboard(src, data);
         }
       })
@@ -710,6 +711,11 @@ function fetchSource(src, timeoutMs){
     })
     .then(data => { clearTimeout(timer); return { src, data }; })
     .catch(err => { clearTimeout(timer); throw err; });
+}
+
+// 数据新鲜度指纹：优先用 generated_at（ISO 时间可直接字符串比较），缺失时退回 latest_date
+function dataStamp(d){
+  return (d && (d.generated_at || d.latest_date)) || '';
 }
 
 function applyDashboard(src, data){

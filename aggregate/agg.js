@@ -227,7 +227,12 @@ function computeMonthlyNew(records) {
       month: m,
       start_date: first.date,
       end_date: last.date,
+      // 自然月口径：本月 1 日 → 月末（或最新一天）
+      period_start: `${m}-01`,
+      period_end: last.date,
       days: recs.length,
+      // 首月数据起点晚于 1 日（如 9/7 才开始抓），该月不是完整自然月
+      is_partial: first.date !== `${m}-01`,
       is_complete: false, // 稍后统一修正
     };
     for (const mm of MONTHLY_METRICS) {
@@ -251,7 +256,7 @@ function computeMonthlyNew(records) {
     merged[m] = Object.assign({}, merged[m] || {}, computed[m]);
   }
 
-  // 标记完结状态：只要存在比它更晚且有数据的月份，说明该月已结束，数值锁定
+  // 标记完结状态：最后一个有数据的月份为「进行中」，其余为已完结
   const keys = Object.keys(merged).sort();
   const lastKey = keys[keys.length - 1];
   for (const k of keys) {
@@ -270,6 +275,11 @@ function computeMonthlyNew(records) {
       baseline_date: d.baseline_date || null,
       is_complete: !!e.is_complete,
       is_first_month: !!d.is_first_month,
+      is_partial: e.is_partial !== undefined
+        ? !!e.is_partial
+        : !!(e.start_date && !e.start_date.endsWith('-01')),
+      period_start: e.period_start || `${k}-01`,
+      period_end: e.period_end || null,
       days: Number(e.days) || 0,
     };
   });
@@ -294,52 +304,111 @@ function computeMonthlyNew(records) {
 }
 
 // ============================================================
-// 每日新增换电站数量（按日历日展示，从指定起点日开始）
-// 规则：
-//   每日新增 = 当日累计 − 前一日累计
-//     · 起点日之后：前一日 = history 中上一条记录（每天仅保留末次抓取）
-//     · 起点日当天：前一日 = history 中早于起点日的最近一条记录作为基线
-// 说明：history 每天 2 次抓取、同日覆盖，故每日仅一条记录。
-//   若起点日与基线日之间存在抓取缺口（某日无记录），则首根柱子会包含
-//   缺口天数的累计新增；后续日期相邻记录连续时即为单日新增。
+// 每日新增换电站数量（逐日滚动）
+// 口径：
+//   当日新增 = 当日累计 − 上一条记录的累计（跨月时基线即上月末记录）
+//   某天没有抓到数据 → new_count = null（图上留空，不用 0 伪装）
+// 输出三套视图，前端可切换：
+//   points = 当前自然月（默认视图，跨月自动切新月份）
+//   last30 = 最近 30 个自然日（滚动窗口）
+//   all    = 自首次抓取以来的全部逐日数据
+// 说明：history 每天抓 2 次、同日覆盖，故正常情况每天一条记录。
 // ============================================================
-const DAILY_NEW_START = '2026-09-26';
 const DAILY_NEW_METRIC = 'swap_station_num_for_com';
 
+function dateRange(start, end) {
+  const out = [];
+  const d = new Date(start + 'T00:00:00Z');
+  const e = new Date(end + 'T00:00:00Z');
+  while (d <= e) {
+    out.push(d.toISOString().slice(0, 10));
+    d.setUTCDate(d.getUTCDate() + 1);
+  }
+  return out;
+}
+
+function summarizeDaily(points) {
+  let total = 0, counted = 0;
+  for (const p of points) {
+    if (p.new_count === null || p.new_count === undefined) continue;
+    total += p.new_count;
+    counted += 1;
+  }
+  return { total_new: total, days_counted: counted, days_total: points.length };
+}
+
 function computeDailyNew(records) {
-  const from = records.filter(r => r.date >= DAILY_NEW_START);
-  if (!from.length) {
+  if (!records || !records.length) {
     return {
-      start_date: DAILY_NEW_START, metric_key: DAILY_NEW_METRIC,
-      label: '本月每日新增换电站数量', unit: '座', points: [],
+      month: null, month_label: null, start_date: null, end_date: null,
+      metric_key: DAILY_NEW_METRIC, label: '本月每日新增换电站数量',
+      unit: '座', points: [], last30: [], all: [],
+      total_new: 0, days_counted: 0, days_total: 0,
     };
   }
-  const points = [];
-  for (let i = 0; i < from.length; i++) {
-    const cur = from[i];
-    const curVal = Number(cur[DAILY_NEW_METRIC]) || 0;
-    let base;
-    if (i > 0) {
-      base = from[i - 1];                       // 上一条记录（相邻日）
-    } else {
-      const earlier = records.filter(r => r.date < DAILY_NEW_START);
-      base = earlier.length ? earlier[earlier.length - 1] : null; // 起点日基线
+
+  const sorted = records.slice().sort((a, b) => a.date.localeCompare(b.date));
+  const byDate = new Map(sorted.map(r => [r.date, r]));
+  const firstDate = sorted[0].date;
+  const lastDate = sorted[sorted.length - 1].date;
+
+  // 连续逐日序列（缺失日留空）
+  const all = [];
+  let prevVal = null, prevDate = null;
+  for (const date of dateRange(firstDate, lastDate)) {
+    const rec = byDate.get(date);
+    if (!rec) {
+      all.push({
+        date, new_count: null, end_value: null,
+        baseline_date: prevDate, baseline_value: null, missing: true,
+      });
+      continue;
     }
-    const baseVal = base ? (Number(base[DAILY_NEW_METRIC]) || 0) : curVal;
-    points.push({
-      date: cur.date,
-      new_count: Math.max(0, curVal - baseVal),
-      end_value: curVal,
-      baseline_date: base ? base.date : null,
-      baseline_value: base ? baseVal : null,
-    });
+    const curVal = Number(rec[DAILY_NEW_METRIC]) || 0;
+    if (prevVal === null) {
+      // 首次抓取当天没有前值可比，不计入新增
+      all.push({
+        date, new_count: null, end_value: curVal,
+        baseline_date: null, baseline_value: null, missing: false, is_first: true,
+      });
+    } else {
+      all.push({
+        date,
+        new_count: Math.max(0, curVal - prevVal),
+        end_value: curVal,
+        baseline_date: prevDate,
+        baseline_value: prevVal,
+        missing: false,
+      });
+    }
+    prevVal = curVal;
+    prevDate = date;
   }
+
+  const targetMonth = monthKey(lastDate);
+  const points = all.filter(p => monthKey(p.date) === targetMonth);
+  const last30 = all.slice(-30);
+  const s = summarizeDaily(points);
+
   return {
-    start_date: DAILY_NEW_START,
+    month: targetMonth,
+    month_label: `${targetMonth.slice(0, 4)} 年 ${Number(targetMonth.slice(5, 7))} 月`,
+    start_date: `${targetMonth}-01`,
+    end_date: lastDate,
     metric_key: DAILY_NEW_METRIC,
     label: '本月每日新增换电站数量',
     unit: '座',
     points,
+    last30,
+    all,
+    total_new: s.total_new,
+    days_counted: s.days_counted,
+    days_total: s.days_total,
+    stats: {
+      month: s,
+      last30: summarizeDaily(last30),
+      all: summarizeDaily(all),
+    },
   };
 }
 

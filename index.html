@@ -52,9 +52,19 @@ body { background:var(--bg); color:var(--text); transition:background .3s,color 
 
 .row { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px; }
 .panel { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; box-shadow:var(--shadow); }
-.panel-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.panel-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; flex-wrap:wrap; }
 .panel-title { font-size:14px; font-weight:700; }
 .panel-hint { font-size:12px; color:var(--muted); }
+.panel-tools { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.seg { display:inline-flex; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+.seg button {
+  appearance:none; border:0; background:transparent; color:var(--muted);
+  font-size:12px; font-weight:600; padding:5px 10px; cursor:pointer; line-height:1;
+  font-family:inherit; transition:background .15s,color .15s;
+}
+.seg button + button { border-left:1px solid var(--border); }
+.seg button:hover { color:var(--text); background:var(--bg); }
+.seg button.active { background:var(--accent); color:#fff; }
 .chart { width:100%; }
 .chart-lg { height:380px; }
 .chart-md { height:300px; }
@@ -156,7 +166,14 @@ html[data-theme="dark"] .live-tag { color:#7AC77A; }
   <div class="panel" style="margin-bottom:18px;">
     <div class="panel-head">
       <span class="panel-title">本月每日新增换电站数量</span>
-      <span class="panel-hint" id="chartDayHint"></span>
+      <div class="panel-tools">
+        <div class="seg" id="dayWin">
+          <button data-win="month" class="active">本月</button>
+          <button data-win="30d">近 30 天</button>
+          <button data-win="all">全部</button>
+        </div>
+        <span class="panel-hint" id="chartDayHint"></span>
+      </div>
     </div>
     <div class="chart chart-lg" id="chartDay"></div>
   </div>
@@ -169,10 +186,10 @@ html[data-theme="dark"] .live-tag { color:#7AC77A; }
     · 「高速公路换电站」对应城际高速换电站（<code>intercity_swap_station_num</code>）。<br>
     · <b>本月新增换电站</b> = 当前累计换电站 − 项目历史起点 <b>2026-09-07</b> 的累计；9 月 7 日及之后每日 = 当日累计 − 2026-09-07 累计。<br>
     · <b>本年新增换电站</b> = 当前累计换电站 − <b>3,676</b>（<b>蔚来官方公布 2025-12-31 换电站总数</b>，作为本年固定基准值，与本地抓取历史无关）。<br>
-    · <b>每月新建数量</b>（如下两图）：每月新增 = 该月末累计 − 基线累计；<b>首月（2026-09）基线为 9 月 7 日首次抓取值</b>（换电站 4,071 / 充电站 5,252），<b>次月起基线为上月末累计</b>。当月未结束前数值持续滚动更新，跨月后自动锁定并计入下月基线。<br>
+    · <b>每月新建数量</b>（如下两图）：<b>按自然月统计</b>，当月新增 = 该自然月末累计 − 上月末累计（如 10 月 = 10/31 累计 − 9/30 累计）。当月未结束前显示「进行中」并逐日滚动，跨月后自动锁定。<b>2026-09 为首月，数据自 9/7 才开始抓取，不是完整自然月</b>，图上以 <b>9月*</b> 虚线描边标注，其数值（换电站 84 座）覆盖 9/7–9/30。<br>
     · 月度数据固化保存于 <code>data/monthly_new.json</code>，即使每日历史被清理也不会丢失。柱状图上悬停可查看当期明细。<br>
     · 更新频率：<b>每天 2 次</b>（北京时间 08:30 / 20:30）。趋势图随每日积累自动增长。指标为<b>累计值</b>。<br>
-    · <b>本月每日新增换电站数量</b>（上方独立柱状图）：以 <b>2026-09-26</b> 为起点按日历日展示，<b>当日新增 = 当日累计 − 前一日累计</b>，随每日抓取自动增长。
+    · <b>本月每日新增换电站数量</b>（上方独立柱状图）：<b>逐日滚动统计</b>，默认显示当前自然月（从当月 1 号起，跨月自动切到新月份）；右上角可切换 <b>本月 / 近 30 天 / 全部</b>。<b>当日新增 = 当日累计 − 上一条记录累计</b>（每月 1 号的基线取上月末）。某天未抓到数据则该位置留空，不按 0 处理。
   </div>
 </div>
 
@@ -190,6 +207,7 @@ const METRIC_DEF = {
 let theme = localStorage.getItem('nio-theme') || 'light';
 let dashboard = null;
 let realtime = null;   // 实时接口数据（浏览器直接请求 NIO，CORS 已开放）
+let dayWin = 'month';  // 每日新增图的时间窗：month | 30d | all
 let rtFetchedAt = null;
 let rtLoading = false;
 const charts = {};
@@ -202,10 +220,16 @@ const RT_CARDS = [
 ];
 const RT_REFRESH_MS = 5 * 60 * 1000;   // 自动刷新间隔 5 分钟
 
-// 远程数据源：留空 = 读取本地 data/dashboard.json（适合本地/离线/WorkBuddy 部署）
-// 填入 raw.githubusercontent.com 地址 = 看板自动从 GitHub 仓库拉数据（适合 WorkBuddy / GitHub Pages 双部署）
-// 例如：'https://raw.githubusercontent.com/<user>/<repo>/main/data'
-const REMOTE_DATA_BASE = 'https://raw.githubusercontent.com/rollinjiang/nio-charge-stats/main/data';
+// 数据源（按顺序回退）：
+//   国内直连 raw.githubusercontent.com 经常超时，一旦超时就会退到部署包里的旧快照，
+//   导致图表停在部署当天。因此优先走国内可访问的镜像（缓存仅 60 秒），
+//   jsDelivr 次之，GitHub 原始地址再次，最后才是本地同源快照。
+const DATA_SOURCES = [
+  { name:'加速镜像', url:'https://gh-proxy.com/https://raw.githubusercontent.com/rollinjiang/nio-charge-stats/main/data/dashboard.json' },
+  { name:'jsDelivr',  url:'https://cdn.jsdelivr.net/gh/rollinjiang/nio-charge-stats@main/data/dashboard.json' },
+  { name:'GitHub',    url:'https://raw.githubusercontent.com/rollinjiang/nio-charge-stats/main/data/dashboard.json' },
+  { name:'本地快照',   url:'data/dashboard.json' },
+];
 
 // ============================================================
 // 实时接口：CORS 已开放(access-control-allow-origin: *)，
@@ -432,10 +456,10 @@ function buildMonthlyBarOption(metricKey, color){
     };
   }
   const pts = s.points;
-  // X 轴：把 2026-09 显示为「26年9月」，更紧凑直观
+  // X 轴：把 2026-09 显示为「26年9月」；数据不完整的首月加 * 标记
   const labels = pts.map(p => {
     const [y, m] = p.month.split('-');
-    return `${y.slice(2)}年${Number(m)}月`;
+    return `${y.slice(2)}年${Number(m)}月` + (p.is_partial ? '*' : '');
   });
   const values = pts.map(p => Number(p.new_count) || 0);
 
@@ -447,13 +471,13 @@ function buildMonthlyBarOption(metricKey, color){
         const i = params[0].dataIndex;
         const p = pts[i];
         const done = p.is_complete ? '已完结' : '进行中';
-        const tip = p.is_first_month
-          ? `首月自 ${p.baseline_date} 起统计`
-          : `对比上月末`;
+        const range = p.is_partial
+          ? `数据自 ${p.baseline_date} 起（非完整自然月）`
+          : `自然月 ${p.period_start} ~ ${p.period_end}`;
         return `<b>${p.month}</b>（${done}）<br>`+
                `当月新增：<b style="color:${color}">${p.new_count}</b> 座<br>`+
-               `<span style="opacity:.7">期间 ${p.baseline_value} → ${p.end_value}</span><br>`+
-               `<span style="opacity:.7">${tip} · 累计 ${p.days} 天</span>`;
+               `<span style="opacity:.7">${range}</span><br>`+
+               `<span style="opacity:.7">期间 ${p.baseline_value} → ${p.end_value} · 共 ${p.days} 天数据</span>`;
       },
     },
     xAxis:{
@@ -471,14 +495,22 @@ function buildMonthlyBarOption(metricKey, color){
     series:[{
       name:'当月新增',
       type:'bar',
-      data:values,
+      data:values.map((v, i) => ({
+        value: v,
+        // 首月不完整 / 当月进行中：用描边区分，避免与完整自然月混淆
+        itemStyle: {
+          color: pts[i].is_partial ? color + '99' : (pts[i].is_complete ? color : color + 'CC'),
+          borderColor: color,
+          borderWidth: pts[i].is_partial ? 1.5 : 0,
+          borderType: pts[i].is_partial ? 'dashed' : 'solid',
+          borderRadius:[5,5,0,0],
+        },
+      })),
       barMaxWidth:70,
-      itemStyle:{ color, borderRadius:[5,5,0,0] },
       label:{
         show:true, position:'top', color:center[4], fontWeight:700, fontSize:12,
         formatter: p => p.value,
       },
-      // 未完结的月份用半透明区分
       emphasis:{ itemStyle:{ opacity:0.85 } },
     }],
   };
@@ -494,9 +526,11 @@ function renderMain(){
   if (hint) {
     if (s && s.points.length) {
       const latest = s.points[s.points.length-1];
-      hint.textContent = latest.is_complete
-        ? `已累计 ${s.points.length} 个月`
-        : `${latest.month} 进行中 · 已 ${latest.days} 天`;
+      const partial = s.points.filter(p => p.is_partial);
+      hint.textContent = (latest.is_complete
+        ? `自然月口径 · 已累计 ${s.points.length} 个月`
+        : `自然月口径 · ${latest.month} 进行中（已 ${latest.days} 天）`)
+        + (partial.length ? ` · 首月自 ${partial[0].baseline_date} 起` : '');
     } else hint.textContent = '';
   }
 }
@@ -518,41 +552,72 @@ function renderSwap(){
   if (hint) {
     if (s && s.points.length) {
       const latest = s.points[s.points.length-1];
-      hint.textContent = latest.is_complete
-        ? `已累计 ${s.points.length} 个月`
-        : `${latest.month} 进行中 · 已 ${latest.days} 天`;
+      const partial = s.points.filter(p => p.is_partial);
+      hint.textContent = (latest.is_complete
+        ? `自然月口径 · 已累计 ${s.points.length} 个月`
+        : `自然月口径 · ${latest.month} 进行中（已 ${latest.days} 天）`)
+        + (partial.length ? ` · 首月自 ${partial[0].baseline_date} 起` : '');
     } else hint.textContent = '';
   }
+}
+
+// 按当前时间窗取出逐日点（兼容旧版数据：无 month 字段时按最新日期所在月过滤）
+function dayPoints(){
+  const dn = dashboard && dashboard.daily_new;
+  if (!dn) return [];
+  if (dayWin === '30d') return dn.last30 || dn.points || [];
+  if (dayWin === 'all')  return dn.all    || dn.points || [];
+  if (!dn.month) {
+    const pts = dn.points || [];
+    if (!pts.length) return [];
+    const m = pts[pts.length - 1].date.slice(0, 7);
+    return pts.filter(p => p.date.startsWith(m));
+  }
+  return dn.points || [];
 }
 
 function buildDailyNewOption(){
   const dn = dashboard && dashboard.daily_new;
   const center = accentColor();
-  if(!dn || !dn.points || !dn.points.length){
-    return { title:{ text:`暂无数据（自 ${dn?dn.start_date:'—'} 起）`, left:'center', top:'middle',
+  const pts = dayPoints();
+  if(!pts.length){
+    return { title:{ text:'暂无数据', left:'center', top:'middle',
       textStyle:{ color:center[4], fontSize:14, fontWeight:'normal' } } };
   }
-  const pts = dn.points;
-  // X 轴：2026-09-26 -> 9/26
-  const labels = pts.map(p => { const [y,m,d] = p.date.split('-'); return `${Number(m)}/${Number(d)}`; });
-  const values = pts.map(p => Number(p.new_count) || 0);
+  // X 轴：2026-10-01 -> 10/1
+  const labels = pts.map(p => {
+    const [,m,d] = p.date.split('-');
+    return `${Number(m)}/${Number(d)}`;
+  });
+  const values = pts.map(p => (p.new_count === null || p.new_count === undefined) ? null : Number(p.new_count));
+  // 跨多个月时，在每月 1 号加一条分隔线标注月份
+  const marks = [];
+  pts.forEach((p, i) => {
+    if (p.date.endsWith('-01') && i > 0) {
+      marks.push({ xAxis: labels[i], label:{ formatter:`${Number(p.date.slice(5,7))}月`, color:center[4], fontSize:11 },
+                   lineStyle:{ color:center[2], type:'dashed' } });
+    }
+  });
   return {
-    grid:{ top:50, left:64, right:30, bottom:50 },
+    grid:{ top:50, left:64, right:30, bottom:56 },
     tooltip:{
       trigger:'axis',
       formatter: params => {
         const i = params[0].dataIndex; const p = pts[i];
-        const line = p.baseline_date && p.baseline_date !== prevDayStr(p.date)
-          ? `<span style="opacity:.7">基线 ${p.baseline_date}（含历史缺口）</span>`
-          : (p.baseline_date ? `<span style="opacity:.7">基线 ${p.baseline_date}</span>` : '');
-        return `<b>${p.date}</b><br>当日新增换电站：<b style="color:#E60012">${p.new_count}</b> 座<br>`+
-               `<span style="opacity:.7">区间 ${p.baseline_value} → ${p.end_value}</span><br>${line}`;
+        if (p.missing) return `<b>${p.date}</b><br><span style="opacity:.7">当日无抓取记录</span>`;
+        const firstNote = p.is_first ? '<br><span style="opacity:.7">首次抓取日，无前值可比</span>' : '';
+        return `<b>${p.date}</b><br>当日新增换电站：<b style="color:#E60012">${p.new_count === null ? '—' : p.new_count}</b> 座<br>`+
+               (p.new_count === null ? '' :
+               `<span style="opacity:.7">区间 ${p.baseline_value} → ${p.end_value}（基线 ${p.baseline_date}）</span>`) + firstNote;
       },
     },
     xAxis:{
       type:'category', data:labels, boundaryGap:true,
-      axisLabel:{ color:center[4] }, axisLine:{ lineStyle:{ color:center[2] } },
-      name:'日期', nameLocation:'end', nameGap:8, nameTextStyle:{ color:center[4], fontSize:11 },
+      axisLabel:{ color:center[4], fontSize:11, interval: dayWin === 'month' ? 0 : 'auto', hideOverlap:true },
+      axisLine:{ lineStyle:{ color:center[2] } },
+      name: dayWin === 'month' && dn.month ? `${dn.month.slice(0,4)} 年 ${Number(dn.month.slice(5,7))} 月` : '',
+      nameLocation:'middle', nameGap:32,
+      nameTextStyle:{ color:center[4], fontSize:11 },
     },
     yAxis:{
       type:'value', min:0,
@@ -560,17 +625,13 @@ function buildDailyNewOption(){
       name:'座', nameTextStyle:{ color:center[4], fontSize:11 },
     },
     series:[{
-      name:'当日新增', type:'bar', data:values, barMaxWidth:54,
-      itemStyle:{ color:'#E60012', borderRadius:[5,5,0,0] },
-      label:{ show:true, position:'top', color:center[4], fontWeight:700, fontSize:12, formatter:p=>p.value },
+      name:'当日新增', type:'bar', data:values, barMaxWidth: dayWin === 'month' ? 26 : 16,
+      itemStyle:{ color:'#E60012', borderRadius:[4,4,0,0] },
+      markLine: marks.length ? { symbol:'none', silent:true, data: marks } : undefined,
+      label:{ show: dayWin === 'month', position:'top', color:center[4], fontWeight:700, fontSize:11,
+              formatter: p => (p.value === null || p.value === undefined) ? '' : p.value },
     }],
   };
-}
-
-function prevDayStr(dateStr){
-  const d = new Date(dateStr + 'T00:00:00Z');
-  d.setUTCDate(d.getUTCDate() - 1);
-  return d.toISOString().slice(0, 10);
 }
 
 function renderDay(){
@@ -580,13 +641,19 @@ function renderDay(){
   charts.day.setOption(option, true);
   const dn = dashboard && dashboard.daily_new;
   const hint = document.getElementById('chartDayHint');
-  if(hint){
-    if(dn && dn.points.length){
-      const latest = dn.points[dn.points.length - 1];
-      const gap = latest.baseline_date && latest.baseline_date !== prevDayStr(latest.date);
-      hint.textContent = `自 ${dn.start_date} 起 · 已统计 ${dn.points.length} 天` + (gap ? ' · 首柱含历史缺口' : '');
-    } else hint.textContent = '';
+  if(!hint) return;
+  const pts = dayPoints();
+  if(!pts.length){ hint.textContent = ''; return; }
+  let total = 0, counted = 0, missing = 0;
+  for(const p of pts){
+    if(p.new_count === null || p.new_count === undefined){ if(p.missing) missing++; continue; }
+    total += p.new_count; counted++;
   }
+  const label = dayWin === 'month'
+    ? (dn.month_label || '本月')
+    : (dayWin === '30d' ? '近 30 天' : `全部（自 ${pts[0].date}）`);
+  hint.textContent = `${label} · 已统计 ${counted} 天 · 累计 +${total} 座`
+    + (missing ? ` · ${missing} 天无数据` : '');
 }
 
 function renderAll(){
@@ -605,28 +672,23 @@ function renderAll(){
 }
 
 function loadData(){
-  // 数据源：远程 (GitHub raw) 优先，本地兜底
-  const sources = [];
-  if (REMOTE_DATA_BASE && REMOTE_DATA_BASE !== '__REMOTE_DATA_BASE__') {
-    sources.push(REMOTE_DATA_BASE + '/dashboard.json');
-  }
-  sources.push('data/dashboard.json');
-  loadDashboardSequential(sources, 0);
+  loadDashboardSequential(DATA_SOURCES, 0);
 
   // 实时数据并行加载（顶部实时区 + KPI 实时兜底）
   renderRealtime();
   refreshRealtime();
 }
 
-function loadDashboardSequential(urls, idx){
-  if (idx >= urls.length) {
-    document.getElementById('updated').innerHTML = `<span class="loaderr">数据加载失败：所有数据源均不可用。${urls.join(' / ')}</span>`;
+function loadDashboardSequential(sources, idx){
+  if (idx >= sources.length) {
+    document.getElementById('updated').innerHTML = `<span class="loaderr">数据加载失败：所有数据源均不可用。${sources.map(s=>s.name).join(' / ')}</span>`;
     return;
   }
-  const url = urls[idx];
+  const src = sources[idx];
+  const url = src.url;
   const ctl = new AbortController();
-  // 远程源在国内网络可能长时间挂起：超时即回退到下一个数据源，避免页面长时间空白
-  const timer = setTimeout(()=>ctl.abort(), 6000);
+  // 远程源在国内网络可能长时间挂起：超时即换下一个源，避免页面长时间空白
+  const timer = setTimeout(()=>ctl.abort(), 5000);
   fetch(url, { cache: 'no-cache', signal: ctl.signal })
     .then(r => {
       if (!r.ok) throw new Error(`HTTP ${r.status} @ ${url}`);
@@ -637,12 +699,9 @@ function loadDashboardSequential(urls, idx){
       dashboard = d;
       renderAll();
       const tag = document.getElementById('dataSourceTag');
-      if (tag) {
-        if (url.startsWith('http')) tag.textContent = '☁ 远程';
-        else tag.textContent = '📁 本地';
-      }
+      if (tag) tag.textContent = (url.startsWith('http') ? '☁ ' : '📁 ') + src.name;
     })
-    .catch(() => { clearTimeout(timer); loadDashboardSequential(urls, idx + 1); });
+    .catch(() => { clearTimeout(timer); loadDashboardSequential(sources, idx + 1); });
 }
 
 function updateUpdatedNote(){
@@ -655,6 +714,15 @@ function updateUpdatedNote(){
 
 document.getElementById('themeBtn').addEventListener('click', ()=>{ theme = theme==='light'?'dark':'light'; applyTheme(); });
 document.getElementById('rtRefresh').addEventListener('click', ()=> refreshRealtime());
+
+// 每日新增图：时间窗切换
+document.querySelectorAll('#dayWin button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    dayWin = btn.dataset.win;
+    document.querySelectorAll('#dayWin button').forEach(b => b.classList.toggle('active', b === btn));
+    renderDay();
+  });
+});
 
 // 定时刷新实时数据；页面重新可见且已过期时立即刷新
 setInterval(()=>{ if(document.visibilityState==='visible') refreshRealtime(); }, RT_REFRESH_MS);

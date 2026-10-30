@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NIO 分省换电站统计</title>
+<link rel="icon" href="data:,">
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <style>
 :root {
@@ -194,6 +195,9 @@ function applyDashboard(src, data){
   renderAll();
   const tag = document.getElementById('dataSourceTag');
   if (tag) tag.textContent = (src.url.startsWith('http') ? '☁ ' : '📁 ') + src.name;
+  const upd = document.getElementById('updated');
+  if (upd) upd.textContent = `数据更新时间：${data.generated_at ? new Date(data.generated_at).toLocaleString('zh-CN') : '—'}`
+    + ` · 最新 ${data.latest_date || '—'} · 已积累 ${data.total_days || 0} 天`;
 }
 
 // 取日维度 bucket 数组

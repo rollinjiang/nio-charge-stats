@@ -126,18 +126,24 @@ function buildYearly(records) {
 // - 本年新增：当前累计 − 蔚来官方公布的 2025-12-31 换电站总数（3,676 座）
 //   数据来源：蔚来官方年报；用作"本年新增换电站"的固定基准值，不依赖本地抓取历史
 function computePeriod(records, latest, metricKey) {
-  const MONTH_BASE_DATE = '2026-09-07';
   // 蔚来官方公布：2025-12-31 换电站总数 = 3,676 座
   const YEAR_BASE_DATE = '2025-12-31';
   const YEAR_BASE_VALUE = 3676;
 
   const curVal = Number(latest[metricKey]) || 0;
 
-  // 月度：基于本地历史抓取的基准日记录
-  const monthBase = records.find(r => r.date === MONTH_BASE_DATE) || null;
+  // 月度：自然月口径 —— 基线取「上个月最后一条记录」，
+  // 即 本月新增 = 当前累计 − 上月末累计（跨月自动重置）
+  const monthKeyOfLatest = String(latest.date).slice(0, 7);   // YYYY-MM
+  const monthStart = monthKeyOfLatest + '-01';
+  const beforeMonth = records.filter(r => r.date < monthStart);
+  const monthBase = beforeMonth.length
+    ? beforeMonth[beforeMonth.length - 1]
+    : (records.find(r => r.date >= monthStart) || null);      // 首月无上月末，退回本月首条
   let monthDelta;
   if (!monthBase) {
-    monthDelta = { value: 0, baseline_date: null, baseline_value: null, has_baseline: false, baseline_source: '项目历史起点' };
+    monthDelta = { value: 0, baseline_date: null, baseline_value: null, has_baseline: false,
+                   baseline_source: '缺少上月数据', is_partial: true };
   } else {
     const baseVal = Number(monthBase[metricKey]) || 0;
     monthDelta = {
@@ -145,7 +151,8 @@ function computePeriod(records, latest, metricKey) {
       baseline_date: monthBase.date,
       baseline_value: baseVal,
       has_baseline: true,
-      baseline_source: '项目历史起点',
+      baseline_source: beforeMonth.length ? '上月最后一条记录' : '本月首条记录（数据起点）',
+      is_partial: !beforeMonth.length,
     };
   }
 
@@ -159,7 +166,8 @@ function computePeriod(records, latest, metricKey) {
   };
 
   return {
-    month_baseline_date: MONTH_BASE_DATE,
+    month_key: monthKeyOfLatest,
+    month_baseline_date: monthBase ? monthBase.date : null,
     year_baseline_date: YEAR_BASE_DATE,
     month_delta: monthDelta,
     year_delta: yearDelta,

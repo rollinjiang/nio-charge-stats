@@ -186,7 +186,7 @@ html[data-theme="dark"] .live-tag { color:#7AC77A; }
     · <b>蔚来能源充换电站总数</b>（<code>power_swap_charge_device_num_total</code>）= 换电站数量 + 充电站数量。<br>
     · <b>蔚来能源充电站数量</b>（<code>power_charge_station_device_num_total</code>）为充电站<b>座数</b>；已验证：换电站 4,071 + 充电站 5,252 = 9,323，与充换电站总数完全吻合。<br>
     · 「高速公路换电站」对应城际高速换电站（<code>intercity_swap_station_num</code>）。<br>
-    · <b>本月新增换电站</b> = 当前累计换电站 − 项目历史起点 <b>2026-09-07</b> 的累计；9 月 7 日及之后每日 = 当日累计 − 2026-09-07 累计。<br>
+    · <b>本月新增换电站</b> = 当前累计换电站 − <b>上个月最后一条记录的累计</b>（自然月口径，跨月自动归零重算）。例：10 月新增 = 10 月最新累计 − 9/30 累计。<br>
     · <b>本年新增换电站</b> = 当前累计换电站 − <b>3,676</b>（<b>蔚来官方公布 2025-12-31 换电站总数</b>，作为本年固定基准值，与本地抓取历史无关）。<br>
     · <b>每月新建数量</b>（如下两图）：<b>按自然月统计</b>，当月新增 = 该自然月末累计 − 上月末累计（如 10 月 = 10/31 累计 − 9/30 累计）。当月未结束前显示「进行中」并逐日滚动，跨月后自动锁定。<b>2026-09 为首月，数据自 9/7 才开始抓取，不是完整自然月</b>，图上以 <b>9月*</b> 虚线描边标注，其数值（换电站 84 座）覆盖 9/7–9/30。<br>
     · 月度数据固化保存于 <code>data/monthly_new.json</code>，即使每日历史被清理也不会丢失。柱状图上悬停可查看当期明细。<br>
@@ -421,13 +421,15 @@ function buildKpis(){
     const data = pd.data || { value:0, has_baseline:false };
     const card = document.createElement('div');
     card.className='kpi'; card.style.setProperty('--c', pd.color);
-    const startLabel = `自 ${pd.periodStart} 起`;
+    const startLabel = pd.key === 'month'
+      ? `自然月 ${period.month_key || ''}`.trim()
+      : `自 ${pd.periodStart} 起`;
     let note;
     if (pd.key === 'year') {
       // 本年新增：基准为蔚来官方 2025-12-31 数据（3,676 座）
       note = `对比 ${data.baseline_date} · 蔚来官方：${fmtFull(data.baseline_value||0)} 座`;
     } else if (data.has_baseline) {
-      note = `对比 ${data.baseline_date} · +${fmtFull(data.value)}`;
+      note = `对比 ${data.baseline_date} 累计`;
     } else {
       note = `基准日未抓取`;
     }

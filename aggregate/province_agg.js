@@ -113,12 +113,17 @@ function main() {
   const dailyDeltas = computeDeltasByProv(history);
   const latestDeltas = dailyDeltas[dailyDeltas.length - 1].deltas || {};
 
-  // "本月新增/本年新增/本月新增最多省份"共享同一基准：项目历史起点（2026-09-07）
-  // 基准日固定，公式 = 当前累计 − 9月7日累计
-  const BASE_DATE = '2026-09-07';
-  const base = history.find(r => r.date === BASE_DATE) || null;
+  // 月度：自然月口径 —— 基线取上个月最后一条记录（跨月自动重置）
+  // 年度：暂以项目历史起点 2026-09-07 为基线（缺少 2025 年末分省数据）
+  const latestMonth = String(latest.date).slice(0, 7);
+  const monthStart = latestMonth + '-01';
+  const beforeMonth = history.filter(r => r.date < monthStart);
+  const monthBase = beforeMonth.length
+    ? beforeMonth[beforeMonth.length - 1]
+    : (history.find(r => r.date >= monthStart) || null);
+  const yearBase = history.find(r => r.date === '2026-09-07') || history[0] || null;
 
-  // 各省在固定基准下的本期新增
+  // 各省相对基线的本期新增
   function deltasFromBaseline(base) {
     const out = {};
     for (const code of ORDER) {
@@ -128,8 +133,8 @@ function main() {
     }
     return out;
   }
-  const yearDeltaByProv = deltasFromBaseline(base);
-  const monthDeltaByProv = deltasFromBaseline(base);
+  const yearDeltaByProv = deltasFromBaseline(yearBase);
+  const monthDeltaByProv = deltasFromBaseline(monthBase);
 
   // "本月新增最多的省份"
   let monthTopCode = null, monthTopVal = -1;
@@ -162,14 +167,16 @@ function main() {
     weekly: bucketize(history, isoWeek, k => orderKeyFnFor(false)(k)),
     monthly: bucketize(history, monthKey, k => k.replace(/-/g, '') * 1),
     yearly: bucketize(history, yearKey, k => k * 1),
-    // 本期新增相关（基准固定为 2026-09-07）
+    // 本期新增相关（月度：上月最后一条记录为基线；年度：项目历史起点）
     period: {
-      baseline_date: BASE_DATE,
+      baseline_date: monthBase ? monthBase.date : null,
+      month_key: latestMonth,
       month_top_province: monthTopCode ? { code: monthTopCode, name: PROVINCE_NAMES[monthTopCode] || monthTopCode, delta: monthTopVal } : null,
       month_delta_by_prov: monthDeltaByProv,
       year_delta_by_prov: yearDeltaByProv,
-      has_baseline: !!base,
-      base_date: base ? base.date : null,
+      has_baseline: !!monthBase,
+      base_date: monthBase ? monthBase.date : null,
+      year_base_date: yearBase ? yearBase.date : null,
       city_latest: cityLatest,
     },
   };

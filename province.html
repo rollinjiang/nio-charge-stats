@@ -165,22 +165,35 @@ function accent(){ return theme==='dark' ? {
   split:'rgba(16,24,40,.07)'
 }; }
 
-// 加载数据：镜像优先，本地兜底（每个源 5 秒超时，避免长时间挂起）
+// 加载数据：所有源并发，先到先用；若后续源的数据日期更新则自动替换
 function loadData(){
-  loadSeq(DATA_SOURCES, 0);
+  DATA_SOURCES.forEach(src => {
+    fetchSource(src, src.url.startsWith('http') ? 5000 : 4000)
+      .then(({ data }) => {
+        if (!dashboard || (data.latest_date || '') > (dashboard.latest_date || '')) {
+          applyDashboard(src, data);
+        }
+      })
+      .catch(() => {});
+  });
+  setTimeout(() => {
+    if (!dashboard) document.getElementById('updated').innerHTML =
+      `<span class="loaderr">数据加载失败：所有数据源均不可用（${DATA_SOURCES.map(s=>s.name).join(' / ')}）</span>`;
+  }, 6000);
 }
-function loadSeq(sources, idx){
-  if (idx >= sources.length) { document.getElementById('updated').innerHTML = `<span class="loaderr">数据加载失败：所有数据源均不可用。${sources.map(s=>s.name).join(' / ')}</span>`; return; }
-  const src = sources[idx];
+function fetchSource(src, timeoutMs){
   const ctl = new AbortController();
-  const timer = setTimeout(()=>ctl.abort(), 5000);
-  fetch(src.url, { cache:'no-cache', signal: ctl.signal })
+  const timer = setTimeout(() => ctl.abort(), timeoutMs || 5000);
+  return fetch(src.url, { cache:'no-cache', signal: ctl.signal })
     .then(r => { if(!r.ok) throw new Error(`HTTP ${r.status} @ ${src.url}`); return r.json(); })
-    .then(d => { clearTimeout(timer); dashboard = d; renderAll();
-      const tag = document.getElementById('dataSourceTag');
-      if (tag) tag.textContent = (src.url.startsWith('http') ? '☁ ' : '📁 ') + src.name;
-    })
-    .catch(() => { clearTimeout(timer); loadSeq(sources, idx+1); });
+    .then(data => { clearTimeout(timer); return { src, data }; })
+    .catch(err => { clearTimeout(timer); throw err; });
+}
+function applyDashboard(src, data){
+  dashboard = data;
+  renderAll();
+  const tag = document.getElementById('dataSourceTag');
+  if (tag) tag.textContent = (src.url.startsWith('http') ? '☁ ' : '📁 ') + src.name;
 }
 
 // 取日维度 bucket 数组

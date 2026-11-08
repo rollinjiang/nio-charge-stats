@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-07T17:48:23.747Z",
+  "generated_at": "2026-11-08T06:26:38.459Z",
   "months": {
     "2026-09": {
       "month": "2026-09",
@@ -52,24 +52,24 @@
     "2026-11": {
       "month": "2026-11",
       "start_date": "2026-11-01",
-      "end_date": "2026-11-07",
+      "end_date": "2026-11-08",
       "period_start": "2026-11-01",
-      "period_end": "2026-11-07",
-      "days": 7,
+      "period_end": "2026-11-08",
+      "days": 8,
       "is_partial": false,
       "is_complete": false,
       "swap": {
         "baseline_date": "2026-10-31",
         "baseline_value": 4230,
-        "end_value": 4243,
-        "new_count": 13,
+        "end_value": 4244,
+        "new_count": 14,
         "is_first_month": false
       },
       "charge": {
         "baseline_date": "2026-10-31",
         "baseline_value": 5539,
-        "end_value": 5574,
-        "new_count": 35,
+        "end_value": 5579,
+        "new_count": 40,
         "is_first_month": false
       }
     }

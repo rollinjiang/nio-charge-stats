@@ -683,13 +683,13 @@
   },
   {
     "date": "2026-11-08",
-    "fetched_at": "2026-11-08T06:26:34.869Z",
+    "fetched_at": "2026-11-08T17:59:44.103Z",
     "power_swap_charge_device_num_total": 9823,
     "power_charge_station_device_num_total": 5579,
     "swap_station_num_for_com": 4244,
     "intercity_swap_station_num": 1079,
     "power_charge_device_num_total": 32552,
     "public_charger_num": 1772334,
-    "charger_other_brand_energy_rate": 86.80092022765143
+    "charger_other_brand_energy_rate": 86.80092022765116
   }
 ]

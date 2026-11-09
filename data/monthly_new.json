@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-08T17:59:47.005Z",
+  "generated_at": "2026-11-09T06:58:42.743Z",
   "months": {
     "2026-09": {
       "month": "2026-09",
@@ -52,10 +52,10 @@
     "2026-11": {
       "month": "2026-11",
       "start_date": "2026-11-01",
-      "end_date": "2026-11-08",
+      "end_date": "2026-11-09",
       "period_start": "2026-11-01",
-      "period_end": "2026-11-08",
-      "days": 8,
+      "period_end": "2026-11-09",
+      "days": 9,
       "is_partial": false,
       "is_complete": false,
       "swap": {

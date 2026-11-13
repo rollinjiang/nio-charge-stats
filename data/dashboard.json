@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-11-12T20:14:36.066Z",
-  "latest_date": "2026-11-12",
-  "total_days": 67,
+  "generated_at": "2026-11-13T07:01:17.375Z",
+  "latest_date": "2026-11-13",
+  "total_days": 68,
   "metrics": [
     {
       "key": "power_swap_charge_device_num_total",
@@ -50,50 +50,50 @@
     "power_swap_charge_device_num_total": {
       "label": "蔚来能源充换电站总数",
       "short": "充换电站总数",
-      "value": 9839,
-      "delta": 3,
+      "value": 9840,
+      "delta": 1,
       "delta_days": 1,
-      "prev_value": 9836
+      "prev_value": 9839
     },
     "swap_station_num_for_com": {
       "label": "换电站数量",
       "short": "换电站",
       "value": 4254,
-      "delta": 2,
+      "delta": 0,
       "delta_days": 1,
-      "prev_value": 4252
+      "prev_value": 4254
     },
     "intercity_swap_station_num": {
       "label": "高速公路换电站",
       "short": "高速换电站",
-      "value": 1082,
-      "delta": 1,
+      "value": 1081,
+      "delta": -1,
       "delta_days": 1,
-      "prev_value": 1081
+      "prev_value": 1082
     },
     "power_charge_station_device_num_total": {
       "label": "蔚来能源充电站数量",
       "short": "充电站",
-      "value": 5585,
+      "value": 5586,
       "delta": 1,
       "delta_days": 1,
-      "prev_value": 5584
+      "prev_value": 5585
     },
     "power_charge_device_num_total": {
       "label": "充电设备总数",
       "short": "充电设备",
-      "value": 32579,
-      "delta": 7,
+      "value": 32589,
+      "delta": 10,
       "delta_days": 1,
-      "prev_value": 32572
+      "prev_value": 32579
     },
     "public_charger_num": {
       "label": "公共充电桩数",
       "short": "公共充电桩",
-      "value": 1778723,
-      "delta": 6641,
+      "value": 1780319,
+      "delta": 1596,
       "delta_days": 1,
-      "prev_value": 1772082
+      "prev_value": 1778723
     }
   },
   "daily": {
@@ -436,6 +436,11 @@
           "x": "2026-11-12",
           "y": 9839,
           "label": "2026-11-12"
+        },
+        {
+          "x": "2026-11-13",
+          "y": 9840,
+          "label": "2026-11-13"
         }
       ]
     },
@@ -778,6 +783,11 @@
           "x": "2026-11-12",
           "y": 4254,
           "label": "2026-11-12"
+        },
+        {
+          "x": "2026-11-13",
+          "y": 4254,
+          "label": "2026-11-13"
         }
       ]
     },
@@ -1120,6 +1130,11 @@
           "x": "2026-11-12",
           "y": 1082,
           "label": "2026-11-12"
+        },
+        {
+          "x": "2026-11-13",
+          "y": 1081,
+          "label": "2026-11-13"
         }
       ]
     },
@@ -1462,6 +1477,11 @@
           "x": "2026-11-12",
           "y": 5585,
           "label": "2026-11-12"
+        },
+        {
+          "x": "2026-11-13",
+          "y": 5586,
+          "label": "2026-11-13"
         }
       ]
     },
@@ -1804,6 +1824,11 @@
           "x": "2026-11-12",
           "y": 32579,
           "label": "2026-11-12"
+        },
+        {
+          "x": "2026-11-13",
+          "y": 32589,
+          "label": "2026-11-13"
         }
       ]
     },
@@ -2146,6 +2171,11 @@
           "x": "2026-11-12",
           "y": 1778723,
           "label": "2026-11-12"
+        },
+        {
+          "x": "2026-11-13",
+          "y": 1780319,
+          "label": "2026-11-13"
         }
       ]
     }
@@ -2203,7 +2233,7 @@
         },
         {
           "x": "2026-W46",
-          "y": 9839,
+          "y": 9840,
           "label": "2026-W46"
         }
       ]
@@ -2317,7 +2347,7 @@
         },
         {
           "x": "2026-W46",
-          "y": 1082,
+          "y": 1081,
           "label": "2026-W46"
         }
       ]
@@ -2374,7 +2404,7 @@
         },
         {
           "x": "2026-W46",
-          "y": 5585,
+          "y": 5586,
           "label": "2026-W46"
         }
       ]
@@ -2431,7 +2461,7 @@
         },
         {
           "x": "2026-W46",
-          "y": 32579,
+          "y": 32589,
           "label": "2026-W46"
         }
       ]
@@ -2488,7 +2518,7 @@
         },
         {
           "x": "2026-W46",
-          "y": 1778723,
+          "y": 1780319,
           "label": "2026-W46"
         }
       ]
@@ -2512,7 +2542,7 @@
         },
         {
           "x": "2026-11",
-          "y": 9839,
+          "y": 9840,
           "label": "2026-11"
         }
       ]
@@ -2556,7 +2586,7 @@
         },
         {
           "x": "2026-11",
-          "y": 1082,
+          "y": 1081,
           "label": "2026-11"
         }
       ]
@@ -2578,7 +2608,7 @@
         },
         {
           "x": "2026-11",
-          "y": 5585,
+          "y": 5586,
           "label": "2026-11"
         }
       ]
@@ -2600,7 +2630,7 @@
         },
         {
           "x": "2026-11",
-          "y": 32579,
+          "y": 32589,
           "label": "2026-11"
         }
       ]
@@ -2622,7 +2652,7 @@
         },
         {
           "x": "2026-11",
-          "y": 1778723,
+          "y": 1780319,
           "label": "2026-11"
         }
       ]
@@ -2636,7 +2666,7 @@
       "points": [
         {
           "x": "2026",
-          "y": 9839,
+          "y": 9840,
           "label": "2026"
         }
       ]
@@ -2660,7 +2690,7 @@
       "points": [
         {
           "x": "2026",
-          "y": 1082,
+          "y": 1081,
           "label": "2026"
         }
       ]
@@ -2672,7 +2702,7 @@
       "points": [
         {
           "x": "2026",
-          "y": 5585,
+          "y": 5586,
           "label": "2026"
         }
       ]
@@ -2684,7 +2714,7 @@
       "points": [
         {
           "x": "2026",
-          "y": 32579,
+          "y": 32589,
           "label": "2026"
         }
       ]
@@ -2696,7 +2726,7 @@
       "points": [
         {
           "x": "2026",
-          "y": 1778723,
+          "y": 1780319,
           "label": "2026"
         }
       ]
@@ -2750,8 +2780,8 @@
             "is_first_month": false,
             "is_partial": false,
             "period_start": "2026-11-01",
-            "period_end": "2026-11-12",
-            "days": 12
+            "period_end": "2026-11-13",
+            "days": 13
           }
         ]
       },
@@ -2788,16 +2818,16 @@
           },
           {
             "month": "2026-11",
-            "new_count": 46,
-            "end_value": 5585,
+            "new_count": 47,
+            "end_value": 5586,
             "baseline_value": 5539,
             "baseline_date": "2026-10-31",
             "is_complete": false,
             "is_first_month": false,
             "is_partial": false,
             "period_start": "2026-11-01",
-            "period_end": "2026-11-12",
-            "days": 12
+            "period_end": "2026-11-13",
+            "days": 13
           }
         ]
       }
@@ -2807,7 +2837,7 @@
     "month": "2026-11",
     "month_label": "2026 年 11 月",
     "start_date": "2026-11-01",
-    "end_date": "2026-11-12",
+    "end_date": "2026-11-13",
     "metric_key": "swap_station_num_for_com",
     "label": "本月每日新增换电站数量",
     "unit": "座",
@@ -2907,17 +2937,17 @@
         "baseline_date": "2026-11-11",
         "baseline_value": 4252,
         "missing": false
+      },
+      {
+        "date": "2026-11-13",
+        "new_count": 0,
+        "end_value": 4254,
+        "baseline_date": "2026-11-12",
+        "baseline_value": 4254,
+        "missing": false
       }
     ],
     "last30": [
-      {
-        "date": "2026-10-14",
-        "new_count": 1,
-        "end_value": 4179,
-        "baseline_date": "2026-10-13",
-        "baseline_value": 4178,
-        "missing": false
-      },
       {
         "date": "2026-10-15",
         "new_count": 1,
@@ -3148,6 +3178,14 @@
         "end_value": 4254,
         "baseline_date": "2026-11-11",
         "baseline_value": 4252,
+        "missing": false
+      },
+      {
+        "date": "2026-11-13",
+        "new_count": 0,
+        "end_value": 4254,
+        "baseline_date": "2026-11-12",
+        "baseline_value": 4254,
         "missing": false
       }
     ],
@@ -3688,31 +3726,39 @@
         "baseline_date": "2026-11-11",
         "baseline_value": 4252,
         "missing": false
+      },
+      {
+        "date": "2026-11-13",
+        "new_count": 0,
+        "end_value": 4254,
+        "baseline_date": "2026-11-12",
+        "baseline_value": 4254,
+        "missing": false
       }
     ],
     "total_new": 24,
-    "days_counted": 12,
-    "days_total": 12,
+    "days_counted": 13,
+    "days_total": 13,
     "stats": {
       "month": {
         "total_new": 24,
-        "days_counted": 12,
-        "days_total": 12
+        "days_counted": 13,
+        "days_total": 13
       },
       "last30": {
-        "total_new": 76,
+        "total_new": 75,
         "days_counted": 30,
         "days_total": 30
       },
       "all": {
         "total_new": 183,
-        "days_counted": 66,
-        "days_total": 67
+        "days_counted": 67,
+        "days_total": 68
       }
     }
   },
   "meta": {
-    "daily_count": 67,
+    "daily_count": 68,
     "weekly_count": 10,
     "monthly_count": 3,
     "yearly_count": 1,

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-20T07:35:07.338Z",
+  "generated_at": "2026-11-20T20:37:43.139Z",
   "months": {
     "2026-09": {
       "month": "2026-09",
@@ -68,8 +68,8 @@
       "charge": {
         "baseline_date": "2026-10-31",
         "baseline_value": 5539,
-        "end_value": 5603,
-        "new_count": 64,
+        "end_value": 5606,
+        "new_count": 67,
         "is_first_month": false
       }
     }

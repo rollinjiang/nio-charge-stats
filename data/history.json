@@ -881,13 +881,13 @@
   },
   {
     "date": "2026-11-26",
-    "fetched_at": "2026-11-26T08:43:22.350Z",
+    "fetched_at": "2026-11-26T21:47:32.904Z",
     "power_swap_charge_device_num_total": 9897,
     "power_charge_station_device_num_total": 5611,
     "swap_station_num_for_com": 4286,
     "intercity_swap_station_num": 1085,
     "power_charge_device_num_total": 32869,
     "public_charger_num": 1782222,
-    "charger_other_brand_energy_rate": 86.86328757891772
+    "charger_other_brand_energy_rate": 86.86328757891752
   }
 ]
